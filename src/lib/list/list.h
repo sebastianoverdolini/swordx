@@ -1,6 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
+#include <stdbool.h>
+
 typedef struct List List;
 typedef struct ListIterator ListIterator;
 
@@ -55,10 +57,8 @@ int list_append(const char *value, List *list);
  * 
  * @param source 
  * @param destination 
- * @return 0 Success
- * @return -1 Failure 
  */
-int list_addall(const List *source, List *destination);
+void list_addall(const List *source, List *destination);
 
 /**
  * @brief Crea un iteratore associato alla lista specificata
