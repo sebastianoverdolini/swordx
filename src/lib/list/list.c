@@ -142,8 +142,7 @@ void list_iterator_advance(ListIterator *iterator){
 
 char *list_iterator_get_element(const ListIterator *iterator){
     assert(iterator);
-    assert(iterator->actual_node->next);
-    return iterator->actual_node->next;
+    return iterator->actual_node->value;
 }
 
 static bool _iterator_has_next(const ListIterator *iterator){
