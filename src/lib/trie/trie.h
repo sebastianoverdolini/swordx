@@ -92,6 +92,7 @@ int trie_insert_wordlist(const List *wordlist, Trie *trie);
  * 
  * @param trie 
  * @return List* Il puntatore alla lista creata
+ * @return NULL Failure
  */
 List *trie_get_wordlist(const Trie *trie);
 
