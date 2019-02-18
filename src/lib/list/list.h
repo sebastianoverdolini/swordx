@@ -14,7 +14,7 @@ bool list_contains(const char *value, const List *list);
 
 int list_append(const char *value, List *list);
 
-int list_addall(List *source, List *destination);
+int list_addall(const List *source, List *destination);
 
 ListIterator *list_iterator_new(const List *list);
 
