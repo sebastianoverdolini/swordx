@@ -160,6 +160,7 @@ static bool _iterator_has_next(const ListIterator *iterator){
     }
     return true;
 }
+
 static void _iterator_advance(ListIterator *iterator){
     assert(iterator);
     if(iterator->actual_node == NULL){
