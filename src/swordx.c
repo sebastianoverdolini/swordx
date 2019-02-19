@@ -65,7 +65,16 @@ int main(int argc, char *argv[]){
     process_command(argc, argv, inputs);
     collect_files(inputs);
     collect_words(words, occurr_words);
-    
+
+    List *wordlist = trie_get_wordlist(words);
+    ListIterator *iterator = list_iterator_new(wordlist);
+    while(list_iterator_has_next(iterator)){
+        list_iterator_advance(iterator);
+        printf(list_iterator_get_element(iterator));
+        printf("\n");
+    }
+
+
     list_destroy(inputs);
     //trie_destroy(words);
     avltree_destroy(occurr_words);

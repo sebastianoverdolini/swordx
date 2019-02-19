@@ -169,6 +169,9 @@ static _TrieNode *_node_new(const char prefix, _TrieNode *parent){
         return NULL;
     }
     node->prefix = prefix;
+    for(int i = 0; i<ALPHABET; i++){
+        node->children[i] = NULL;
+    }
     node->occurrences = 0;
     node->is_word = false;
     node->is_leaf = true;
@@ -263,7 +266,7 @@ static void _collect_words(const _TrieNode *node, List *wordlist, char *word){
             } else {
                 next_word_len = 2;
             }
-            char *next_word = (char *)malloc(next_word_len);
+            char *next_word = malloc(next_word_len);
             assert(next_word);
             if(word == NULL){
                 next_word[0] = node->children[i]->prefix;
