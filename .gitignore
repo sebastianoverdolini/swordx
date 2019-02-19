@@ -4,6 +4,9 @@
 #bin
 swordx
 
+#testdir
+test
+
 # Prerequisites
 *.d
 
