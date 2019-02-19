@@ -269,4 +269,5 @@ void print_help(){
     printf("\t-a / --alpha : only words containing alphabetic characters are considered in the statistics\n");
     printf("\t-m / --min <num> : the minimum word length\n");
     printf("\t-i / --ignore <file> : the file is list of word (one for lines) who ignored in the stats\n");
+    printf("\n\n");
 }
