@@ -58,7 +58,7 @@ int list_append(const char *value, List *list);
  * @param source 
  * @param destination 
  */
-void list_addall(const List *source, List *destination);
+void list_addall(List *source, List *destination);
 
 /**
  * @brief Crea un iteratore associato alla lista specificata

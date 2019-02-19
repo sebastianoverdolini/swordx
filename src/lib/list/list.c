@@ -22,7 +22,7 @@ typedef struct _ListNode {
 } _ListNode;
 
 typedef struct ListIterator {
-    List *list;
+    const List *list;
     _ListNode *actual_node;
     void (*f_advance)(ListIterator *self);
 } ListIterator;
@@ -84,7 +84,6 @@ int list_append(const char *value, List *list){
     if(!new_node){
         return -1;
     }
-    int caz = strlen(value) + 1;
     new_node->value = malloc(strlen(value) + 1);
     if(new_node->value){
         return -1;
@@ -99,9 +98,10 @@ int list_append(const char *value, List *list){
         list->tail = new_node;
     }
     list->elements_count++;
+    return 0;
 }
 
-void list_addall(const List *source, List *destination){
+void list_addall(List *source, List *destination){
     assert(source);
     assert(destination);
 
