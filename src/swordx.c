@@ -164,7 +164,7 @@ void process_command(int argc, char *argv[], List *inputs){
     }
 }
 
-void initialize_optargs(){
+void initialize_global(){
     recursive = false;
     follow = false;
     alpha = false;
