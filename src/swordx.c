@@ -22,8 +22,10 @@ static struct OptArgs {
     char *log_path;
 } OptArgs;
 
-static List *files;
-
+void process_command(int argc, char *argv[], List *inputs);
+void collect_files(List *inputs, List *files);
+void collect_words(List *files, Trie *words, AVLTree *occurr_words);
+void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
 int main(int argc, char *argv[]){
     initialize_optargs();
@@ -33,17 +35,17 @@ int main(int argc, char *argv[]){
     if(!files) die(NULL);
     Trie *words = trie_new();
     if(!words) die(NULL);
-    AVLTree *words_from_occ = avltree_new();
-    if(!words_from_occ) die(NULL);
+    AVLTree *occurr_words = avltree_new();
+    if(!occurr_words) die(NULL);
 
     process_command(argc, argv, inputs);
-    collect_files(inputs);
-    collect_words(files, words, words_from_occ);
-    save(files, words, words_from_occ);
+    collect_files(inputs, files);
+    collect_words(files, words, occurr_words);
+    save(words, occurr_words);
 
     list_destroy(inputs);
+    list_destroy(files);
     trie_destroy(words);
-    avltree_destroy(words_from_occ);
-
+    avltree_destroy(occurr_words);
     free_optargs();
 }
