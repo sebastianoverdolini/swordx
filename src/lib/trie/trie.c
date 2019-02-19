@@ -169,6 +169,7 @@ static _TrieNode *_node_new(const char prefix, _TrieNode *parent){
         return NULL;
     }
     node->prefix = prefix;
+    node->occurrences = 0;
     node->is_word = false;
     node->is_leaf = true;
     node->parent = parent;

@@ -102,12 +102,7 @@ int avltree_insert(const int key, Trie *element, AVLTree *tree){
         if(!tree->root){
             return -1;
         }
-        tree->root->element = malloc(sizeof(element));
-        if(!tree->root->element){
-            return -1;
-        }
         tree->root->element = element;
-        tree->elements_count++;
         tree->elements_count++;
     } else {
         _AVLTreeNode *node = _get_node_from_key(key, tree->root);

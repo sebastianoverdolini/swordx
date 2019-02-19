@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
     collect_words(words, occurr_words);
     
     list_destroy(inputs);
-    trie_destroy(words);
+    //trie_destroy(words);
     avltree_destroy(occurr_words);
     free_global();
 }
