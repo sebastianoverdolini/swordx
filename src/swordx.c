@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 
 #include "lib/list/list.h"
 #include "lib/trie/trie.h"
@@ -71,12 +73,8 @@ static void initialize_optargs(){
 }
 
 static void die(char *message){
-    if(!message){
-        perror();
-    } else {
-        perror(message);
-    }
-    free_optargs();
+    perror(message);
+    free_global();
     exit(EXIT_FAILURE);
 }
 
