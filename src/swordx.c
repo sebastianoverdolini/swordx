@@ -45,6 +45,8 @@ void die(char *message);
 void free_global();
 
 bool word_is_valid(const char *word);
+bool word_is_alphabetic(const char *word);
+int import_words_from_file(char *file, Trie *words);
 int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf);
 List *get_words_from_file(const char *path);
 char *get_absolute_path(const char *path);
@@ -206,7 +208,7 @@ void collect_words(Trie *words, AVLTree *occurr_words){
     assert(occurr_words);
     assert(files);
     int res = 0;
-    Trie *imported_words;
+    Trie *imported_words = NULL;
 
     if(update){
         res = import_words_from_file(OptArgs.output_path, imported_words);
@@ -224,21 +226,21 @@ void collect_words(Trie *words, AVLTree *occurr_words){
             list_iterator_advance(filewords_it);
             char *word = list_iterator_get_element(filewords_it);
             if(word_is_valid(word)){
-                if(!update || trie_contains(words, imported_words)){
-                int old_occ = trie_get_word_occurrences(word, words);
-                res = trie_insert(word, words);
-                if(res < 0) die("Failed to insert word");
-                if(old_occ != 0){
-                    trie_remove(word, avltree_get_element_by_key(old_occ, occurr_words));
-                }
-                if(!avltree_contains_key(old_occ+1, occurr_words)){
-                    res = avltree_insert(old_occ+1, trie_new(), occurr_words);
+                if(!update || trie_contains(word, imported_words)){
+                    int old_occ = trie_get_word_occurrences(word, words);
+                    res = trie_insert(word, words);
                     if(res < 0) die("Failed to insert word");
+                        if(old_occ != 0){
+                        trie_remove(word, avltree_get_element_by_key(old_occ, occurr_words));
+                        }
+                        if(!avltree_contains_key(old_occ+1, occurr_words)){
+                            res = avltree_insert(old_occ+1, trie_new(), occurr_words);
+                            if(res < 0) die("Failed to insert word");
+                        }
+                        Trie *trie = avltree_get_element_by_key(old_occ+1, occurr_words);
+                        res = trie_insert(word, trie);
+                        if(res < 0) die("Failed to insert word");
                 }
-                Trie *trie = avltree_get_element_by_key(old_occ+1, occurr_words);
-                res = trie_insert(word, trie);
-                if(res < 0) die("Failed to insert word");
-            }
             }
         }
     }
@@ -275,15 +277,27 @@ bool word_is_valid(const char *word){
         return false;
     }
     if(alpha){
-        if(!is_alphabetic(word)){
+        if(!word_is_alphabetic(word)){
             return false;
         }
     }
     if(strlen(word) < OptArgs.minimum_word_length){
         return false;
     }
-    if(list_contains(word, OptArgs.words_to_ignore)){
+    if(trie_contains(word, OptArgs.words_to_ignore)){
         return false;
+    }
+    return true;
+}
+
+bool word_is_alphabetic(const char *word){
+    if(!word){
+        return false;
+    }
+    for(int i = 0; i < strlen(word); i++){
+        if(isdigit(word[i])){
+            return false;
+        }
     }
     return true;
 }

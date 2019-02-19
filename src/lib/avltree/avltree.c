@@ -315,7 +315,9 @@ static bool _is_leaf(const _AVLTreeNode *node){
 }
 
 static _AVLTreeNode *_get_node_from_key(int key, _AVLTreeNode *root){
-    assert(root);
+    if(root == NULL){
+        return NULL;
+    }
     if(key == root->key){
         return root;
     } else if(key < root->key){

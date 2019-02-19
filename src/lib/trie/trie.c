@@ -69,6 +69,15 @@ int trie_insert(const char *word, Trie *trie){
     return 0;
 }
 
+void trie_remove(const char *word, Trie *trie){
+    assert(trie);
+    _TrieNode *node = _get_last_word_node(word, trie->root);
+    if(node){
+        node->occurrences = 0;
+        node->is_word = false;
+    }
+}
+
 bool trie_contains(const char *word, const Trie *trie){
     assert(trie);
     if(strcmp(word, "") == 0){
