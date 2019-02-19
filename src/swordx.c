@@ -33,7 +33,7 @@ static struct OptArgs {
 
 static List *files;
 
-void process_command(int argc, char *argv[], List *inputs);
+void process_command(const int argc, const char *argv[], List *inputs);
 void collect_files(List *inputs);
 void collect_words(List *files, Trie *words, AVLTree *occurr_words);
 void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]){
     free_global();
 }
 
-void process_command(int argc, char *argv[], List *inputs){
+void process_command(const int argc, const char *argv[], List *inputs){
     assert(inputs);
     if(argc <= 1){
         print_help();
