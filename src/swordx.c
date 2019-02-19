@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <getopt.h>
+#include <limits.h>
 
 #include "lib/list/list.h"
 #include "lib/trie/trie.h"
@@ -95,7 +96,9 @@ static void process_command(int argc, char *argv[], List *inputs){
                 break;
             case 'f': follow = true;
                 break;
-            case 'e': list_append(get_absolute_path(optarg), OptArgs.files_to_exclude);
+            case 'e': {
+                list_append(get_absolute_path(optarg), OptArgs.files_to_exclude);
+            }
                 break;
             case 'a': alpha = true;
                 break;
@@ -182,6 +185,15 @@ static void free_global(){
     free(OptArgs.output_path);
     free(OptArgs.log_path);
     list_destroy(files);
+}
+
+char *get_absolute_path(const char *path){
+    char actual_path [PATH_MAX + 1];
+    char *abspath = realpath(path, actual_path);
+    if(abspath == NULL){
+        die("Error with retrieving absolute path");
+    }
+    return abspath;
 }
 
 void print_help(){
