@@ -85,10 +85,9 @@ int list_append(const char *value, List *list){
         return -1;
     }
     new_node->value = malloc(strlen(value) + 1);
-    if(new_node->value){
+    if(!new_node->value){
         return -1;
     }
-    assert(new_node->value);
     strcpy(new_node->value, value);
     new_node->next = NULL;
     if(list->elements_count == 0){
@@ -104,7 +103,7 @@ int list_append(const char *value, List *list){
 void list_addall(List *source, List *destination){
     assert(source);
     assert(destination);
-
+    
     if(destination->head == NULL){
         destination->head = source->head;
         destination->tail = source->tail;
