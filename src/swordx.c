@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
 
     process_command(argc, argv, inputs);
     collect_files(inputs);
-
+    
     list_destroy(inputs);
     trie_destroy(words);
     avltree_destroy(occurr_words);
@@ -226,7 +226,7 @@ void initialize_global(){
     OptArgs.minimum_word_length = 0;
     OptArgs.words_to_ignore = trie_new();
     if(!OptArgs.words_to_ignore) die(NULL);
-    List *files = list_new();
+    files = list_new();
     if(!files) die(NULL);
 }
 
