@@ -24,25 +24,13 @@ static struct OptArgs {
 
 static List *files;
 
-/* Process command, set flags and save inputs in List *inputs. */
 static void process_command(int argc, char *argv[], List *inputs);
-
-/* Collect List of files from inputs */
 static void collect_files(List *inputs);
-
-/* Collect the words presents in the file, with occurrences */
 static void collect_words(List *files, Trie *words, AVLTree *occurr_words);
-
-/* Save words with occurrences in file */
 static void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
-/* Initialize global var. */
 static void initialize_global();
-
-/* Exit from application with failure. print perror. */
 static void die(char *message);
-
-/* Free memory of global var. */
 static void free_global();
 
 int main(int argc, char *argv[]){
