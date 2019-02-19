@@ -364,7 +364,12 @@ static _AVLTreeNode *_get_successor(_AVLTreeNode *node){
 }
 
 static void _destroy(_AVLTreeNode *root){
-    //To implement
+    _AVLTreeNode *node = _get_minimum(root);
+    while(_get_successor(node) != NULL){
+        _AVLTreeNode *to_destroy = node;
+        node = _get_successor(node);
+        free(to_destroy);
+    }
 }
 
 static _AVLTreeNode *_new(const int key){
