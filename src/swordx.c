@@ -40,6 +40,7 @@ static void die(char *message);
 static void free_global();
 
 char *get_absolute_path(const char *path);
+int convert_to_int(const char *text);
 void print_help();
 
 int main(int argc, char *argv[]){
@@ -113,7 +114,7 @@ static void process_command(int argc, char *argv[], List *inputs){
                     errno = EIO;
                     die("Invalid --minimum argument");
                 } else {
-                    OptArgs.minimum_word_length = convert_to_int(optarg);
+                    OptArgs.minimum_word_length = min;
                 }
             } break;
             case 'i': {
@@ -203,6 +204,21 @@ char *get_absolute_path(const char *path){
         return NULL;
     }
     return abspath;
+}
+
+int convert_to_int(const char *text){
+    int len = strlen(text);
+    if(len == 0){
+        return -1;
+    }
+    int result = 0;
+    for(int i = 0; i<len; i++){
+        if(!isdigit(text[i])){
+            return -1;
+        }
+        result = result * 10 + (text[i] - '0');
+    }
+    return result;
 }
 
 void print_help(){
