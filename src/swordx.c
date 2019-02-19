@@ -14,6 +14,8 @@
 #include "lib/trie/trie.h"
 #include "lib/avltree/avltree.h"
 
+#define DEFAULT_OUTPUT_NAME "swordx.out"
+
 static bool recursive;
 static bool follow;
 static bool alpha;
@@ -133,7 +135,10 @@ void process_command(int argc, char *argv[], List *inputs){
                 break;
             case 'u': update = true;
                 break;
-            case 'o': OptArgs.output_path = optarg;
+            case 'o': {
+                OptArgs.output_path = malloc(strlen(optarg) +1);
+                strcpy(OptArgs.output_path, optarg);
+            }
                 break;
             case '?': print_help(); die("Option not valid");
                 break;
@@ -143,7 +148,8 @@ void process_command(int argc, char *argv[], List *inputs){
     }
 
     if(OptArgs.output_path == NULL){
-        OptArgs.output_path = "swordx.out";
+        OptArgs.output_path = malloc(strlen(DEFAULT_OUTPUT_NAME) +1);
+        strcpy(OptArgs.output_path, DEFAULT_OUTPUT_NAME);
     }
 
     for(int i = optind; i<argc; i++){
