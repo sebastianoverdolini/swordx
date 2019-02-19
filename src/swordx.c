@@ -37,6 +37,8 @@ static void initialize_global();
 static void die(char *message);
 static void free_global();
 
+void print_help();
+
 int main(int argc, char *argv[]){
     initialize_global();
     List *inputs = list_new();
@@ -174,4 +176,23 @@ static void free_global(){
     free(OptArgs.output_path);
     free(OptArgs.log_path);
     list_destroy(files);
+}
+
+void print_help(){
+    printf("\tUsage: swordx [options] [inputs]\n\n");
+    printf("  HELP:\n");
+    printf("\t-h / --help : help\n");
+    printf("  OUTPUTS:\n");
+    printf("\t-o / --output : output filename\n");
+    printf("\t-l / --log <file> : viene generato un file di log\n");
+    printf("\t-s / --sortbyoccurrency : le parole nel file di output vengono inserite per numero di occorrenze\n");
+    printf("\t--update <file> : viene fatto update\n");
+    printf("  FOLDERS:\n");
+    printf("\t-r / --recursive : all subdirectories are followed in the process\n");
+    printf("\t-f / --follow : links are followed in the process\n");
+    printf("\t-e / --exclude <file> the specified file is not considered in processing\n");
+    printf("  WORDS:\n");
+    printf("\t-a / --alpha : only words containing alphabetic characters are considered in the statistics\n");
+    printf("\t-m / --min <num> : the minimum word length\n");
+    printf("\t-i / --ignore <file> : the file is list of word (one for lines) who ignored in the stats\n");
 }
