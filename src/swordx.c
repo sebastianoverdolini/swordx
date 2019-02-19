@@ -36,7 +36,7 @@ static List *files;
 
 void process_command(int argc, char *argv[], List *inputs);
 void collect_files(List *inputs);
-void collect_words(List *files, Trie *words, AVLTree *occurr_words);
+void collect_words(Trie *words, AVLTree *occurr_words);
 void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
 void initialize_global();
@@ -61,6 +61,7 @@ int main(int argc, char *argv[]){
 
     process_command(argc, argv, inputs);
     collect_files(inputs);
+    collect_words(words, occurr_words);
     
     list_destroy(inputs);
     trie_destroy(words);
@@ -182,6 +183,7 @@ void process_command(int argc, char *argv[], List *inputs){
 
 void collect_files(List *inputs){
     assert(inputs);
+    assert(files);
     int flags = 0;
     flags |= FTW_ACTIONRETVAL;
     if(!follow){
@@ -196,6 +198,47 @@ void collect_files(List *inputs){
             die("Error in files collecting");
         }
     }
+}
+
+void collect_words(Trie *words, AVLTree *occurr_words){
+    assert(words);
+    assert(occurr_words);
+    assert(files);
+    int res = 0;
+    Trie *update_words;
+
+    if(update){
+        res = import_words_from_file(OptArgs.output_path, update_words);
+        if(res < 0){
+            die("Failed to import words");
+        }
+    }
+
+
+}
+
+int import_words_from_file(char *file, Trie *words){
+    assert(words);
+    int res = 0;
+    if(!file){
+        return -1;
+    }
+    List* filewords = get_words_from_file(file);
+    if(!filewords){
+        return -1;
+    }
+    ListIterator *iterator = list_iterator_new(filewords);
+    while(list_iterator_has_next(iterator)){
+        list_iterator_advance(iterator);
+        char *word = list_iterator_get_element(iterator);
+        if(!list_iterator_has_next(iterator)) return -1;
+        int occurrences = convert_to_int(list_iterator_get_element(iterator));
+        if(occurrences < 0) return -1;
+        if(trie_contains(word, words)) return -1;
+        res = trie_insert(word, words);
+        if(res < 0) return -1;
+    }
+    return 0;
 }
 
 int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf){
