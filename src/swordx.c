@@ -39,6 +39,7 @@ void exit_success();
 static void die(char *message);
 static void free_global();
 
+char *get_absolute_path(const char *path);
 void print_help();
 
 int main(int argc, char *argv[]){
@@ -97,7 +98,11 @@ static void process_command(int argc, char *argv[], List *inputs){
             case 'f': follow = true;
                 break;
             case 'e': {
-                list_append(get_absolute_path(optarg), OptArgs.files_to_exclude);
+                char *abspath = get_absolute_path(optarg);
+                if(!abspath){
+                    die("Error with exclude file.");
+                }
+                list_append(abspath, OptArgs.files_to_exclude);
             }
                 break;
             case 'a': alpha = true;
@@ -141,7 +146,11 @@ static void process_command(int argc, char *argv[], List *inputs){
     }
 
     for(int i = optind; i<argc; i++){
-        list_append(argv[i], inputs);
+        char *abspath = get_absolute_path(argv[i]);
+        if(!abspath){
+            die("Error with input");
+        }
+        list_append(abspath, inputs);
     }
 
     if(list_get_nodes_count(inputs) == 0){
