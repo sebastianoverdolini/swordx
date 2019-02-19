@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+#include <ftw.h>
 #include <string.h>
 #include <assert.h>
 #include <getopt.h>
@@ -43,6 +44,7 @@ void exit_success();
 void die(char *message);
 void free_global();
 
+int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf);
 List *get_words_from_file(const char *path);
 char *get_absolute_path(const char *path);
 int convert_to_int(const char *text);
@@ -58,6 +60,7 @@ int main(int argc, char *argv[]){
     if(!occurr_words) die(NULL);
 
     process_command(argc, argv, inputs);
+    collect_files(inputs);
 
     list_destroy(inputs);
     trie_destroy(words);
@@ -175,6 +178,39 @@ void process_command(int argc, char *argv[], List *inputs){
         errno = EIO;
         die("No input to be processed has been specified");
     }
+}
+
+void collect_files(List *inputs){
+    assert(inputs);
+    int flags = 0;
+    flags |= FTW_ACTIONRETVAL;
+    if(!follow){
+        flags |= FTW_PHYS;
+    }
+    ListIterator *iterator = list_iterator_new(inputs);
+    while(list_iterator_has_next(iterator)){
+        list_iterator_advance(iterator);
+        char *path = list_iterator_get_element(iterator);
+        int result = nftw(path, manage_entry, 20, flags);
+        if(result == -1){
+            die("Error in files collecting");
+        }
+    }
+}
+
+int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf){
+    if(typeflag == FTW_F){
+        if(!list_contains(fpath, OptArgs.files_to_exclude)){
+            list_append(fpath, files);
+            return FTW_CONTINUE;
+        }
+    }
+    if( (typeflag == FTW_D && recursive == true) || ftbuf->level == 0){
+        return FTW_CONTINUE;
+    } else {
+        return FTW_SKIP_SUBTREE;
+    }
+    return FTW_STOP;
 }
 
 void initialize_global(){
