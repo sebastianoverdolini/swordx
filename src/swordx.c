@@ -70,14 +70,14 @@ int main(int argc, char *argv[]){
     ListIterator *iterator = list_iterator_new(wordlist);
     while(list_iterator_has_next(iterator)){
         list_iterator_advance(iterator);
-        printf(list_iterator_get_element(iterator));
+        printf("%s %d", list_iterator_get_element(iterator), trie_get_word_occurrences(list_iterator_get_element(iterator), words));
         printf("\n");
     }
 
 
     list_destroy(inputs);
     //trie_destroy(words);
-    avltree_destroy(occurr_words);
+    //avltree_destroy(occurr_words);
     free_global();
 }
 
@@ -220,6 +220,7 @@ void collect_words(Trie *words, AVLTree *occurr_words){
     Trie *imported_words = NULL;
 
     if(update){
+        imported_words = trie_new();
         res = import_words_from_file(OptArgs.output_path, imported_words);
         if(res < 0){
             die("Failed to import words");
@@ -258,9 +259,6 @@ void collect_words(Trie *words, AVLTree *occurr_words){
 int import_words_from_file(char *file, Trie *words){
     assert(words);
     int res = 0;
-    if(!file){
-        return -1;
-    }
     List* filewords = get_words_from_file(file);
     if(!filewords){
         return -1;
@@ -270,6 +268,7 @@ int import_words_from_file(char *file, Trie *words){
         list_iterator_advance(iterator);
         char *word = list_iterator_get_element(iterator);
         if(!list_iterator_has_next(iterator)) return -1;
+        list_iterator_advance(iterator);
         int occurrences = convert_to_int(list_iterator_get_element(iterator));
         if(occurrences < 0) return -1;
         if(trie_contains(word, words)) return -1;
@@ -355,8 +354,8 @@ void die(char *message){
 }
 
 void free_global(){
-    list_destroy(OptArgs.files_to_exclude);
-    trie_destroy(OptArgs.words_to_ignore);
+    //list_destroy(OptArgs.files_to_exclude);
+    //trie_destroy(OptArgs.words_to_ignore);
     free(OptArgs.output_path);
     free(OptArgs.log_path);
     list_destroy(files);
