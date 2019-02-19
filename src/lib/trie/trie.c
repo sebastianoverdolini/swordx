@@ -1,11 +1,14 @@
 #include "trie.h"
 #include "../list/list.h"
 
+#include <ctype.h>
+#include <stdio.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
+#include <stddef.h>
+#include <string.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #define ALPHABET 36
 
@@ -15,7 +18,7 @@ static _TrieNode *_node_new(const char prefix, _TrieNode *parent);
 static void _node_destroy(_TrieNode *node);
 static bool _word_format_is_valid(const char *word);
 static void _node_insert(const char *word, _TrieNode *node);
-static _TrieNode *_get_last_word_node(const char *word, const _TrieNode *node);
+static _TrieNode *_get_last_word_node(const char *word, _TrieNode *node);
 static int _get_children_array_pos(const char prefix);
 static void _collect_words(const _TrieNode *node, List *wordlist, char *word);
 
@@ -202,7 +205,7 @@ static void _node_insert(const char *word, _TrieNode *node){
     _node_insert(word+1, node->children[next_child_index]);
 }
 
-static _TrieNode *_get_last_word_node(const char *word, const _TrieNode *node){
+static _TrieNode *_get_last_word_node(const char *word, _TrieNode *node){
     assert(node);
     if(strlen(word) == 0 && node->is_word == true){
         return node;
