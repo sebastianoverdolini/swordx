@@ -24,20 +24,31 @@ static struct OptArgs {
 
 static List *files;
 
+/* Process command, set flags and save inputs in List *inputs. */
 static void process_command(int argc, char *argv[], List *inputs);
+
+/* Collect List of files from inputs */
 static void collect_files(List *inputs);
+
+/* Collect the words presents in the file, with occurrences */
 static void collect_words(List *files, Trie *words, AVLTree *occurr_words);
+
+/* Save words with occurrences in file */
 static void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
-static void initialize_optargs();
+/* Initialize global var. */
+static void initialize_global();
+
+/* Exit from application with failure. print perror. */
 static void die(char *message);
 
+/* Free memory of global var. */
+static void free_global();
+
 int main(int argc, char *argv[]){
-    initialize_optargs();
+    initialize_global();
     List *inputs = list_new();
     if(!inputs) die(NULL);
-    List *files = list_new();
-    if(!files) die(NULL);
     Trie *words = trie_new();
     if(!words) die(NULL);
     AVLTree *occurr_words = avltree_new();
@@ -52,7 +63,7 @@ int main(int argc, char *argv[]){
     list_destroy(files);
     trie_destroy(words);
     avltree_destroy(occurr_words);
-    free_optargs();
+    free_global();
 }
 
 static void initialize_optargs(){
@@ -64,8 +75,12 @@ static void initialize_optargs(){
     log = false;
 
     OptArgs.files_to_exclude = list_new();
+    if(!OptArgs.files_to_exclude) die(NULL);
     OptArgs.minimum_word_length = 0;
     OptArgs.words_to_ignore = trie_new();
+    if(!OptArgs.words_to_ignore) die(NULL);
+    List *files = list_new();
+    if(!files) die(NULL);
 }
 
 static void die(char *message){
@@ -76,4 +91,12 @@ static void die(char *message){
     }
     free_optargs();
     exit(EXIT_FAILURE);
+}
+
+static void free_global(){
+    list_destroy(OptArgs.files_to_exclude);
+    trie_destroy(OptArgs.words_to_ignore);
+    free(OptArgs.output_path);
+    free(OptArgs.log_path);
+    list_destroy(files);
 }
