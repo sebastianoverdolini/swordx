@@ -131,7 +131,14 @@ void process_command(int argc, char *argv[], List *inputs){
             } break;
             case 's': sortbyoccurrency = true;
                 break;
-            case 'l': log = true; OptArgs.log_path = optarg;
+            case 'l': {
+                 log = true;
+                OptArgs.log_path = malloc(strlen(optarg) +1);
+                if(!OptArgs.log_path){
+                    die("Error with --log argument");
+                }
+                strcpy(OptArgs.log_path, optarg);
+            }
                 break;
             case 'u': update = true;
                 break;
