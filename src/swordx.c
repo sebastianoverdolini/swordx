@@ -34,6 +34,7 @@ static void collect_words(List *files, Trie *words, AVLTree *occurr_words);
 static void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
 static void initialize_global();
+void exit_success();
 static void die(char *message);
 static void free_global();
 
@@ -162,6 +163,11 @@ static void initialize_optargs(){
     if(!OptArgs.words_to_ignore) die(NULL);
     List *files = list_new();
     if(!files) die(NULL);
+}
+
+void exit_success(){
+    free_global();
+    exit(EXIT_SUCCESS);
 }
 
 static void die(char *message){
