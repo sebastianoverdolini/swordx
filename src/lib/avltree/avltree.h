@@ -107,7 +107,7 @@ int avltree_insert(const int key, Trie *element, AVLTree *tree);
  * @return AVLTreeIterator* Puntatore all'iteratore creato
  * @return NULL Failure
  */
-AVLTreeIterator *avltree_iterator_new(const AVLTree *tree);
+AVLTreeIterator *avltree_iterator_new(AVLTree *tree);
 
 /**
  * @brief Distrugge l'iteratore specificato

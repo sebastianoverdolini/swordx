@@ -47,7 +47,7 @@ Trie *trie_new(){
 
 void trie_destroy(Trie *trie){
     if(trie){
-        _destroy(trie->root);
+        _node_destroy(trie->root);
         free(trie);
     }
 }
@@ -128,7 +128,7 @@ int trie_insert_wordlist(const List *wordlist, Trie *trie){
     ListIterator *iterator = list_iterator_new(wordlist);
     while(list_iterator_has_next(iterator)){
         list_iterator_advance(iterator);
-        int res = trie_insert(list_iterator_get_value(iterator), trie);
+        int res = trie_insert(list_iterator_get_element(iterator), trie);
         if(res == -1){
             return -1;
         }
@@ -166,7 +166,7 @@ static _TrieNode *_node_new(const char prefix, _TrieNode *parent){
 static void _node_destroy(_TrieNode *node){
     if(node){
         for(int i = 0; i <=ALPHABET; i++){
-            _destroy(node->children[i]);
+            _node_destroy(node->children[i]);
         }
         free(node);
     }
@@ -199,7 +199,7 @@ static void _node_insert(const char *word, _TrieNode *node){
             node->is_leaf = false;
         }
     }
-    _insert(word+1, node->children[next_child_index]);
+    _node_insert(word+1, node->children[next_child_index]);
 }
 
 static _TrieNode *_get_last_word_node(const char *word, const _TrieNode *node){

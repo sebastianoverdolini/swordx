@@ -1,5 +1,6 @@
 #include "avltree.h"
 #include <stdlib.h>
+#include <assert.h>
 
 typedef struct _AVLTreeNode _AVLTreeNode;
 static bool _iterator_has_next(const AVLTreeIterator *iterator);
@@ -14,10 +15,10 @@ static bool _is_balanced(const _AVLTreeNode *node);
 static int _get_balance_factor(const _AVLTreeNode *node);
 static void _update_height(_AVLTreeNode *node);
 static bool _is_leaf(const _AVLTreeNode *node);
-static _AVLTreeNode *_get_node_from_key(const int key, const _AVLTreeNode *root);
-static _AVLTreeNode *_get_minimum(const _AVLTreeNode *node);
-static _AVLTreeNode *_get_maximum(const _AVLTreeNode *node);
-static _AVLTreeNode *_get_successor(const _AVLTreeNode *node);
+static _AVLTreeNode *_get_node_from_key(const int key, _AVLTreeNode *root);
+static _AVLTreeNode *_get_minimum(_AVLTreeNode *node);
+static _AVLTreeNode *_get_maximum(_AVLTreeNode *node);
+static _AVLTreeNode *_get_successor(_AVLTreeNode *node);
 static void _destroy(_AVLTreeNode *root);
 static _AVLTreeNode *_new(const int key);
 
@@ -120,9 +121,10 @@ int avltree_insert(const int key, Trie *element, AVLTree *tree){
             node->element = element;
         }
     }
+    return 0;
 }
 
-AVLTreeIterator *avltree_iterator_new(const AVLTree *tree){
+AVLTreeIterator *avltree_iterator_new(AVLTree *tree){
     assert(tree);
     AVLTreeIterator *iterator = malloc(sizeof(AVLTreeIterator));
     if(iterator == NULL){
@@ -312,7 +314,7 @@ static bool _is_leaf(const _AVLTreeNode *node){
     return (node->right == NULL) && (node->left == NULL);
 }
 
-static _AVLTreeNode *_get_node_from_key(const int key, const _AVLTreeNode *root){
+static _AVLTreeNode *_get_node_from_key(int key, _AVLTreeNode *root){
     assert(root);
     if(key == root->key){
         return root;
@@ -331,7 +333,7 @@ static _AVLTreeNode *_get_node_from_key(const int key, const _AVLTreeNode *root)
     }
 }
 
-static _AVLTreeNode *_get_minimum(const _AVLTreeNode *node){
+static _AVLTreeNode *_get_minimum(_AVLTreeNode *node){
     assert(node);
     if(node->left != NULL){
         return _get_minimum(node->left);
@@ -339,7 +341,7 @@ static _AVLTreeNode *_get_minimum(const _AVLTreeNode *node){
     return node;
 }
 
-static _AVLTreeNode *_get_maximum(const _AVLTreeNode *node){
+static _AVLTreeNode *_get_maximum(_AVLTreeNode *node){
     assert(node);
     if(node->right != NULL){
         return _get_maximum(node->right);
@@ -347,7 +349,7 @@ static _AVLTreeNode *_get_maximum(const _AVLTreeNode *node){
     return node;
 }
 
-static _AVLTreeNode *_get_successor(const _AVLTreeNode *node){
+static _AVLTreeNode *_get_successor(_AVLTreeNode *node){
     assert(node);
     if(node->right != NULL){
         return _get_minimum(node->right);
