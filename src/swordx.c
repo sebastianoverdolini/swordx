@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+#include <string.h>
 #include <assert.h>
 #include <getopt.h>
 #include <limits.h>
@@ -30,16 +31,17 @@ static struct OptArgs {
 
 static List *files;
 
-static void process_command(int argc, char *argv[], List *inputs);
-static void collect_files(List *inputs);
-static void collect_words(List *files, Trie *words, AVLTree *occurr_words);
-static void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
+void process_command(int argc, char *argv[], List *inputs);
+void collect_files(List *inputs);
+void collect_words(List *files, Trie *words, AVLTree *occurr_words);
+void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
-static void initialize_global();
+void initialize_global();
 void exit_success();
-static void die(char *message);
-static void free_global();
+void die(char *message);
+void free_global();
 
+List *get_words_from_file(const char *path);
 char *get_absolute_path(const char *path);
 int convert_to_int(const char *text);
 void print_help();
@@ -64,7 +66,7 @@ int main(int argc, char *argv[]){
     free_global();
 }
 
-static void process_command(int argc, char *argv[], List *inputs){
+void process_command(int argc, char *argv[], List *inputs){
     assert(inputs);
     if(argc <= 1){
         print_help();
@@ -162,7 +164,7 @@ static void process_command(int argc, char *argv[], List *inputs){
     }
 }
 
-static void initialize_optargs(){
+void initialize_optargs(){
     recursive = false;
     follow = false;
     alpha = false;
@@ -184,13 +186,13 @@ void exit_success(){
     exit(EXIT_SUCCESS);
 }
 
-static void die(char *message){
+void die(char *message){
     perror(message);
     free_global();
     exit(EXIT_FAILURE);
 }
 
-static void free_global(){
+void free_global(){
     list_destroy(OptArgs.files_to_exclude);
     trie_destroy(OptArgs.words_to_ignore);
     free(OptArgs.output_path);
@@ -220,6 +222,34 @@ int convert_to_int(const char *text){
         result = result * 10 + (text[i] - '0');
     }
     return result;
+}
+
+List *get_words_from_file(const char *path){
+    FILE *file = fopen(path, "r");
+    if(!file){
+        return NULL;
+    }
+    List *words = list_new();
+    if(!words){
+        return NULL;
+    }
+    char *buffer, *word;
+    size_t lnsize = 0;
+    int res = 0;
+    while( (res = getline(&buffer, &lnsize, file)) > 0){
+        if(res == -1){
+            return NULL;
+        }
+        word = strtok(buffer, " ,.:;-_[]()/!£$%&?^|*€@#§°*'\n");
+        while(word != NULL){
+            res = list_append(word, words);
+            if(res == -1){
+                return NULL;
+            }
+            word = strtok(NULL, " ,.:;-_[]()/!£$%&?^|*€@#§°*'\n");
+        }
+    }
+    return words;
 }
 
 void print_help(){
