@@ -29,6 +29,8 @@ static void collect_files(List *inputs);
 static void collect_words(List *files, Trie *words, AVLTree *occurr_words);
 static void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
+static void initialize_optargs();
+
 int main(int argc, char *argv[]){
     initialize_optargs();
     List *inputs = list_new();
@@ -50,4 +52,17 @@ int main(int argc, char *argv[]){
     trie_destroy(words);
     avltree_destroy(occurr_words);
     free_optargs();
+}
+
+static void initialize_optargs(){
+    recursive = false;
+    follow = false;
+    alpha = false;
+    sortbyoccurrency = false;
+    update = false;
+    log = false;
+
+    OptArgs.files_to_exclude = list_new();
+    OptArgs.minimum_word_length = 0;
+    OptArgs.words_to_ignore = trie_new();
 }
