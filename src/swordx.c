@@ -22,10 +22,12 @@ static struct OptArgs {
     char *log_path;
 } OptArgs;
 
-void process_command(int argc, char *argv[], List *inputs);
-void collect_files(List *inputs, List *files);
-void collect_words(List *files, Trie *words, AVLTree *occurr_words);
-void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
+static List *files;
+
+static void process_command(int argc, char *argv[], List *inputs);
+static void collect_files(List *inputs);
+static void collect_words(List *files, Trie *words, AVLTree *occurr_words);
+static void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
 int main(int argc, char *argv[]){
     initialize_optargs();
@@ -39,9 +41,9 @@ int main(int argc, char *argv[]){
     if(!occurr_words) die(NULL);
 
     process_command(argc, argv, inputs);
-    collect_files(inputs, files);
+    collect_files(inputs);
     collect_words(files, words, occurr_words);
-    save(words, occurr_words);
+    save_output(OptArgs.output_path, words, occurr_words);
 
     list_destroy(inputs);
     list_destroy(files);
