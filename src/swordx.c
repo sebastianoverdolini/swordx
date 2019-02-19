@@ -44,6 +44,7 @@ void exit_success();
 void die(char *message);
 void free_global();
 
+bool word_is_valid(const char *word);
 int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf);
 List *get_words_from_file(const char *path);
 char *get_absolute_path(const char *path);
@@ -222,7 +223,8 @@ void collect_words(Trie *words, AVLTree *occurr_words){
         while(list_iterator_has_next(filewords_it)){
             list_iterator_advance(filewords_it);
             char *word = list_iterator_get_element(filewords_it);
-            if(!update || trie_contains(words, imported_words)){
+            if(word_is_valid(word)){
+                if(!update || trie_contains(words, imported_words)){
                 int old_occ = trie_get_word_occurrences(word, words);
                 res = trie_insert(word, words);
                 if(res < 0) die("Failed to insert word");
@@ -236,6 +238,7 @@ void collect_words(Trie *words, AVLTree *occurr_words){
                 Trie *trie = avltree_get_element_by_key(old_occ+1, occurr_words);
                 res = trie_insert(word, trie);
                 if(res < 0) die("Failed to insert word");
+            }
             }
         }
     }
@@ -265,6 +268,24 @@ int import_words_from_file(char *file, Trie *words){
     list_iterator_destroy(iterator);
     list_destroy(filewords);
     return 0;
+}
+
+bool word_is_valid(const char *word){
+    if(!word){
+        return false;
+    }
+    if(alpha){
+        if(!is_alphabetic(word)){
+            return false;
+        }
+    }
+    if(strlen(word) < OptArgs.minimum_word_length){
+        return false;
+    }
+    if(list_contains(word, OptArgs.words_to_ignore)){
+        return false;
+    }
+    return true;
 }
 
 int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf){
