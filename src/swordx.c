@@ -205,16 +205,40 @@ void collect_words(Trie *words, AVLTree *occurr_words){
     assert(occurr_words);
     assert(files);
     int res = 0;
-    Trie *update_words;
+    Trie *imported_words;
 
     if(update){
-        res = import_words_from_file(OptArgs.output_path, update_words);
+        res = import_words_from_file(OptArgs.output_path, imported_words);
         if(res < 0){
             die("Failed to import words");
         }
     }
-
-
+    ListIterator *iterator = list_iterator_new(files);
+    while(list_iterator_has_next(iterator)){
+        list_iterator_advance(iterator);
+        char *filepath = list_iterator_get_element(iterator);
+        List *filewords = get_words_from_file(filepath);
+        ListIterator *filewords_it = list_iterator_new(filewords);
+        while(list_iterator_has_next(filewords_it)){
+            list_iterator_advance(filewords_it);
+            char *word = list_iterator_get_element(filewords_it);
+            if(!update || trie_contains(words, imported_words)){
+                int old_occ = trie_get_word_occurrences(word, words);
+                res = trie_insert(word, words);
+                if(res < 0) die("Failed to insert word");
+                if(old_occ != 0){
+                    trie_remove(word, avltree_get_element_by_key(old_occ, occurr_words));
+                }
+                if(!avltree_contains_key(old_occ+1, occurr_words)){
+                    res = avltree_insert(old_occ+1, trie_new(), occurr_words);
+                    if(res < 0) die("Failed to insert word");
+                }
+                Trie *trie = avltree_get_element_by_key(old_occ+1, occurr_words);
+                res = trie_insert(word, trie);
+                if(res < 0) die("Failed to insert word");
+            }
+        }
+    }
 }
 
 int import_words_from_file(char *file, Trie *words){
@@ -238,6 +262,8 @@ int import_words_from_file(char *file, Trie *words){
         res = trie_insert(word, words);
         if(res < 0) return -1;
     }
+    list_iterator_destroy(iterator);
+    list_destroy(filewords);
     return 0;
 }
 
