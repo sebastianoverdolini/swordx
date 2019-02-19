@@ -84,6 +84,7 @@ int list_append(const char *value, List *list){
     if(!new_node){
         return -1;
     }
+    int caz = strlen(value) + 1;
     new_node->value = malloc(strlen(value) + 1);
     if(new_node->value){
         return -1;
