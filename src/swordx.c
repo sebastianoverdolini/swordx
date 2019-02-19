@@ -103,7 +103,7 @@ void process_command(int argc, char *argv[], List *inputs){
             case 'e': {
                 char *abspath = get_absolute_path(optarg);
                 if(!abspath){
-                    die("Error with exclude file.");
+                    die("Invalid --exclude argument");
                 }
                 list_append(abspath, OptArgs.files_to_exclude);
             }
@@ -122,11 +122,11 @@ void process_command(int argc, char *argv[], List *inputs){
             case 'i': {
                 List *filewords = get_words_from_file(optarg);
                 if(!filewords){
-                    die("Ignore file not valid");
+                    die("Invalid --ignore argument");
                 }
                 int res = trie_insert_wordlist(filewords, OptArgs.words_to_ignore);
                 if(res == -1){
-                    die("Ignore file not valid");
+                    die("Invalid --ignore argument");
                 }
             } break;
             case 's': sortbyoccurrency = true;
@@ -137,12 +137,15 @@ void process_command(int argc, char *argv[], List *inputs){
                 break;
             case 'o': {
                 OptArgs.output_path = malloc(strlen(optarg) +1);
+                if(!OptArgs.output_path){
+                    die("Error with --output argument");
+                }
                 strcpy(OptArgs.output_path, optarg);
             }
                 break;
-            case '?': print_help(); die("Option not valid");
+            case '?': print_help(); errno = EIO; die("Option not valid");
                 break;
-            default: print_help(); die("Option not valid");
+            default: print_help(); errno = EIO; die("Option not valid");
                 break;
         }
     }
@@ -155,7 +158,7 @@ void process_command(int argc, char *argv[], List *inputs){
     for(int i = optind; i<argc; i++){
         char *abspath = get_absolute_path(argv[i]);
         if(!abspath){
-            die("Error with input");
+            die("Invalid input");
         }
         list_append(abspath, inputs);
     }
