@@ -38,7 +38,7 @@ typedef struct _AVLTreeNode{
 
 
 typedef struct AVLTreeIterator{
-    AVLTree *tree;
+    const AVLTree *tree;
     _AVLTreeNode *actual_node;
     void (*f_advance)(AVLTreeIterator *self);
 } AVLTreeIterator;
@@ -124,7 +124,7 @@ int avltree_insert(const int key, Trie *element, AVLTree *tree){
     return 0;
 }
 
-AVLTreeIterator *avltree_iterator_new(AVLTree *tree){
+AVLTreeIterator *avltree_iterator_new(const AVLTree *tree){
     assert(tree);
     AVLTreeIterator *iterator = malloc(sizeof(AVLTreeIterator));
     if(iterator == NULL){
