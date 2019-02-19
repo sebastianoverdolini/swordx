@@ -48,7 +48,6 @@ int main(int argc, char *argv[]){
     save_output(OptArgs.output_path, words, occurr_words);
 
     list_destroy(inputs);
-    list_destroy(files);
     trie_destroy(words);
     avltree_destroy(occurr_words);
     free_global();
