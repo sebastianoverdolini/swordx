@@ -191,7 +191,7 @@ char *get_absolute_path(const char *path){
     char actual_path [PATH_MAX + 1];
     char *abspath = realpath(path, actual_path);
     if(abspath == NULL){
-        die("Error with retrieving absolute path");
+        return NULL;
     }
     return abspath;
 }
