@@ -364,7 +364,7 @@ static _AVLTreeNode *_get_successor(_AVLTreeNode *node){
 }
 
 static void _destroy(_AVLTreeNode *root){
-    
+    //To implement
 }
 
 static _AVLTreeNode *_new(const int key){
