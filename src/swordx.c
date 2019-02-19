@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <ctype.h>
 #include <assert.h>
 #include <getopt.h>
 #include <limits.h>
@@ -53,9 +54,9 @@ int main(int argc, char *argv[]){
     if(!occurr_words) die(NULL);
 
     process_command(argc, argv, inputs);
-    collect_files(inputs);
-    collect_words(files, words, occurr_words);
-    save_output(OptArgs.output_path, words, occurr_words);
+    //collect_files(inputs);
+    //collect_words(files, words, occurr_words);
+    //save_output(OptArgs.output_path, words, occurr_words);
 
     list_destroy(inputs);
     trie_destroy(words);
@@ -154,7 +155,7 @@ static void process_command(int argc, char *argv[], List *inputs){
         list_append(abspath, inputs);
     }
 
-    if(list_get_nodes_count(inputs) == 0){
+    if(list_get_elements_count(inputs) == 0){
         print_help();
         errno = EIO;
         die("No input to be processed has been specified");
