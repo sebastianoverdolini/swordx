@@ -30,6 +30,7 @@ static void collect_words(List *files, Trie *words, AVLTree *occurr_words);
 static void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 
 static void initialize_optargs();
+static void die(char *message);
 
 int main(int argc, char *argv[]){
     initialize_optargs();
@@ -65,4 +66,14 @@ static void initialize_optargs(){
     OptArgs.files_to_exclude = list_new();
     OptArgs.minimum_word_length = 0;
     OptArgs.words_to_ignore = trie_new();
+}
+
+static void die(char *message){
+    if(!message){
+        perror();
+    } else {
+        perror(message);
+    }
+    free_optargs();
+    exit(EXIT_FAILURE);
 }
