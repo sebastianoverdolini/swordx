@@ -1,6 +1,9 @@
 #editor
 .vscode
 
+#bin
+swordx
+
 # Prerequisites
 *.d
 
