@@ -242,7 +242,7 @@ void collect_words(Trie *words, AVLTree *occurr_words){
                             if(res < 0) die("Failed to insert word");
                         }
                         Trie *trie = avltree_get_element_by_key(old_occ+1, occurr_words);
-                        res = trie_insert(word, trie);
+                        res = trie_insert_with_occ(word, old_occ+1, trie);
                         if(res < 0) die("Failed to insert word");
                 }
             }

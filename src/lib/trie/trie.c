@@ -17,7 +17,7 @@ typedef struct _TrieNode _TrieNode;
 static _TrieNode *_node_new(const char prefix, _TrieNode *parent);
 static void _node_destroy(_TrieNode *node);
 static bool _word_format_is_valid(const char *word);
-static void _node_insert(const char *word, _TrieNode *node);
+static void _node_insert(const char *word, int occurrences, _TrieNode *node);
 static _TrieNode *_get_last_word_node(const char *word, _TrieNode *node);
 static int _get_children_array_pos(const char prefix);
 static void _collect_words(const _TrieNode *node, List *wordlist, char *word);
@@ -65,7 +65,21 @@ int trie_insert(const char *word, Trie *trie){
         errno = EINVAL;
         return -1;
     }
-    _node_insert(word, trie->root);
+    _node_insert(word, 1, trie->root);
+    return 0;
+}
+
+int trie_insert_with_occ(const char *word, int occurrences, Trie *trie){
+    assert(trie);
+    if(strcmp(word, "") == 0){
+        errno = EINVAL;
+        return -1;
+    }
+    if(!_word_format_is_valid(word)){
+        errno = EINVAL;
+        return -1;
+    }
+    _node_insert(word, occurrences, trie->root);
     return 0;
 }
 
@@ -198,10 +212,10 @@ static bool _word_format_is_valid(const char *word){
     return true;
 }
 
-static void _node_insert(const char *word, _TrieNode *node){
+static void _node_insert(const char *word, int occurrences, _TrieNode *node){
     assert(node);
     if(strlen(word) == 0){
-        node->occurrences++;
+        node->occurrences += occurrences;
         node->is_word = true;
         return;
     }
@@ -215,7 +229,7 @@ static void _node_insert(const char *word, _TrieNode *node){
             node->is_leaf = false;
         }
     }
-    _node_insert(word+1, node->children[next_child_index]);
+    _node_insert(word+1, occurrences, node->children[next_child_index]);
 }
 
 static _TrieNode *_get_last_word_node(const char *word, _TrieNode *node){
