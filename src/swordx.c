@@ -8,6 +8,7 @@
 #include <ftw.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h>
 #include <getopt.h>
 #include <limits.h>
 
@@ -44,8 +45,9 @@ void exit_success();
 void die(char *message);
 void free_global();
 
+int write_log_line(char *logfilepath, char *name, int cw, int iw, double time);
 int save_trie_on_file(char *filepath, Trie *trie);
-int collect_wordslist(List *wordslist, Trie *words, AVLTree *occurr_words, Trie *imported_words);
+int process_file(char *filepath, Trie *words, AVLTree *occurr_words, Trie *imported_words);
 int insert_sortbyoccurrency(char *word, Trie *words, AVLTree *occurr_words);
 bool word_is_valid(const char *word);
 bool word_is_alphabetic(const char *word);
@@ -225,20 +227,24 @@ void collect_words(Trie *words, AVLTree *occurr_words){
     while(list_iterator_has_next(files_iterator)){
         list_iterator_advance(files_iterator);
         char *filepath = list_iterator_get_element(files_iterator);
-        List *wordslist = get_words_from_file(filepath);
-        int res = collect_wordslist(wordslist, words, occurr_words, imported_words);
+        int res = process_file(filepath, words, occurr_words, imported_words);
         if(res < 0)
             die("Fail in wordslist collect");
     }
 }
 
-int collect_wordslist(List *wordslist, Trie *words, AVLTree *occurr_words, Trie *imported_words){
+int process_file(char *filepath, Trie *words, AVLTree *occurr_words, Trie *imported_words){
     assert(words);
-    assert(wordslist);
-    if(sortbyoccurrency){
+    if(sortbyoccurrency)
         assert(occurr_words);
-    }
+    List *wordslist = get_words_from_file(filepath);
+    if(!wordslist)
+        return -1;
     int res = 0;
+    int words_count = list_get_elements_count(wordslist);
+    int registed_words = 0;
+    int ignored_words = 0;
+    clock_t begin = clock();
     ListIterator *filewords_it = list_iterator_new(wordslist);
     while(list_iterator_has_next(filewords_it)){
         list_iterator_advance(filewords_it);
@@ -249,11 +255,28 @@ int collect_wordslist(List *wordslist, Trie *words, AVLTree *occurr_words, Trie 
                     res = insert_sortbyoccurrency(word, words, occurr_words);
                 }
                 res = trie_insert(word, words);
+                registed_words++;
             }
         }
         if(res < 0)
             return -1;
     }
+    clock_t end = clock();
+    double time_spent = (double) (end - begin) / CLOCKS_PER_SEC;
+    ignored_words = words_count - registed_words;
+
+    if(log){
+        write_log_line(OptArgs.log_path, filepath, registed_words, ignored_words, time_spent);
+    }
+    return 0;
+}
+
+int write_log_line(char *logfilepath, char *name, int cw, int iw, double time){
+    FILE *logfile = fopen(logfilepath, "a");
+    if (!logfile)
+        return -1;
+    fprintf(logfile, "%s;%d;%d;%lf\n", name, cw, iw, time);
+    fclose(logfile);
     return 0;
 }
 
