@@ -68,7 +68,6 @@ int main(int argc, char *argv[]){
     collect_words(words, occurr_words);
     save_output(OptArgs.output_path, words, occurr_words);
 
-
     list_destroy(inputs);
     //trie_destroy(words);
     //avltree_destroy(occurr_words);
@@ -283,7 +282,7 @@ int save_trie_on_file(char *filepath, Trie *trie){
     ListIterator *wl_iterator = list_iterator_new(wordlist);
     while(list_iterator_has_next(wl_iterator)){
         list_iterator_advance(wl_iterator);
-        res = fprintf(file, "%s %d\n", list_iterator_get_element(wl_iterator), trie_get_word_occurrences(list_iterator_get_element(wl_iterator), trie));
+        res = fprintf(file, "%s\n", list_iterator_get_element(wl_iterator));
         if(res < 0) return -1;
     }
     return 0;

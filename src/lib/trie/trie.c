@@ -267,7 +267,10 @@ static void _collect_words(const _TrieNode *node, List *wordlist, char *word){
     assert(node);
     assert(wordlist);
     if(node->is_word){
-        list_append(word, wordlist);
+        int len = strlen(word) + 1  + sizeof(int) + 1;
+        char *word_info = malloc(len);
+        snprintf(word_info, len, "%s %d", word, node->occurrences);
+        list_append(word_info, wordlist);
     }
     if(node->is_leaf){
         return;
