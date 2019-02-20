@@ -44,6 +44,7 @@ void exit_success();
 void die(char *message);
 void free_global();
 
+int save_trie_on_file(char *filepath, Trie *trie);
 bool word_is_valid(const char *word);
 bool word_is_alphabetic(const char *word);
 int import_words_from_file(char *file, Trie *words);
@@ -65,6 +66,7 @@ int main(int argc, char *argv[]){
     process_command(argc, argv, inputs);
     collect_files(inputs);
     collect_words(words, occurr_words);
+    save_output(OptArgs.output_path, words, occurr_words);
 
 
     list_destroy(inputs);
@@ -246,6 +248,45 @@ void collect_words(Trie *words, AVLTree *occurr_words){
             }
         }
     }
+}
+
+void save_output(char *output_path, Trie *words, AVLTree *occurr_words){
+    assert(occurr_words);
+    assert(words);
+    int res = 0;
+    if(sortbyoccurrency){
+        AVLTreeIterator *avliterator = avltree_iterator_new(occurr_words);
+        while(avltree_iterator_has_next(avliterator)){
+            avltree_iterator_advance(avliterator);
+            res = save_trie_on_file(output_path, avltree_iterator_get_element(avliterator));
+            if(res < 0){
+                die("Error in output file");
+            }
+        }
+        //destroy iterator
+    } else {
+        res = save_trie_on_file(output_path, words);
+        if(res < 0){
+            die("Error in output file");
+        }
+    }
+}
+
+int save_trie_on_file(char *filepath, Trie *trie){
+    char *write_mode = (sortbyoccurrency) ? "a" : "w";
+    int res = 0;
+    FILE *file = fopen(filepath, write_mode);
+    if(!file){
+        return -1;
+    }
+    List *wordlist = trie_get_wordlist(trie);
+    ListIterator *wl_iterator = list_iterator_new(wordlist);
+    while(list_iterator_has_next(wl_iterator)){
+        list_iterator_advance(wl_iterator);
+        res = fprintf(file, "%s %d\n", list_iterator_get_element(wl_iterator), trie_get_word_occurrences(list_iterator_get_element(wl_iterator), trie));
+        if(res < 0) return -1;
+    }
+    return 0;
 }
 
 int import_words_from_file(char *file, Trie *words){
