@@ -66,14 +66,6 @@ int main(int argc, char *argv[]){
     collect_files(inputs);
     collect_words(words, occurr_words);
 
-    List *wordlist = trie_get_wordlist(words);
-    ListIterator *iterator = list_iterator_new(wordlist);
-    while(list_iterator_has_next(iterator)){
-        list_iterator_advance(iterator);
-        printf("%s %d", list_iterator_get_element(iterator), trie_get_word_occurrences(list_iterator_get_element(iterator), words));
-        printf("\n");
-    }
-
 
     list_destroy(inputs);
     //trie_destroy(words);
@@ -226,10 +218,10 @@ void collect_words(Trie *words, AVLTree *occurr_words){
             die("Failed to import words");
         }
     }
-    ListIterator *iterator = list_iterator_new(files);
-    while(list_iterator_has_next(iterator)){
-        list_iterator_advance(iterator);
-        char *filepath = list_iterator_get_element(iterator);
+    ListIterator *files_iterator = list_iterator_new(files);
+    while(list_iterator_has_next(files_iterator)){
+        list_iterator_advance(files_iterator);
+        char *filepath = list_iterator_get_element(files_iterator);
         List *filewords = get_words_from_file(filepath);
         ListIterator *filewords_it = list_iterator_new(filewords);
         while(list_iterator_has_next(filewords_it)){
