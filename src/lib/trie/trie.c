@@ -161,18 +161,19 @@ static void _node_insert(const char *word, int occurrences, _TrieNode *node){
         node->occurrences += occurrences;
         node->is_word = true;
         return;
-    }
-    char next_prefix = tolower(word[0]);
-    int next_child_index = _get_children_array_pos(next_prefix);
-    assert(next_child_index != -1);
-    if(node->children[next_child_index] == NULL){
-        node->children[next_child_index] = _node_new(next_prefix, node);
-        assert(node->children[next_child_index]);
-        if(node->is_leaf){
+    } else {
+        char next_prefix = tolower(word[0]);
+        int next_child_index = _get_children_array_pos(next_prefix);
+        assert(next_child_index != -1);
+        if(node->children[next_child_index] == NULL){
+            node->children[next_child_index] = _node_new(next_prefix, node);
+            assert(node->children[next_child_index]);
+            if(node->is_leaf){
             node->is_leaf = false;
-        }
-    }
-    _node_insert(word+1, occurrences, node->children[next_child_index]);
+            }
+        }   
+        _node_insert(word+1, occurrences, node->children[next_child_index]);
+    }   
 }
 
 static _TrieNode *_get_last_word_node(const char *word, _TrieNode *node){
@@ -212,32 +213,23 @@ static void _collect_words(const _TrieNode *node, List *wordlist, char *word){
     if(node->is_word){
         int len = strlen(word) + 1  + sizeof(int) + 1;
         char *word_info = malloc(len);
+        assert(word_info);
         snprintf(word_info, len, "%s %d", word, node->occurrences);
         list_append(word_info, wordlist);
     }
-    if(node->is_leaf){
-        return;
-    }
-    for(int i = 0; i < ALPHABET; i++){
-        if(node->children[i] != NULL){
-            int next_word_len;
-            if(word != NULL){
-                next_word_len = strlen(word) + 2;
-            } else {
-                next_word_len = 2;
+    if (!node->is_leaf){
+        for (int i = 0; i < ALPHABET; i++){
+            if (node->children[i] != NULL){
+                int next_word_len;
+                int next_word_len = (word != NULL) ? (strlen(word) + 2) : 2;
+                char *next_word = malloc(next_word_len);
+                assert(next_word);
+                if (word != NULL)
+                    strcpy(next_word, word);
+                next_word[next_word_len - 2] = node->children[i]->prefix;
+                next_word[next_word_len - 1] = '\0';
+                _collect_words(node->children[i], wordlist, next_word);
             }
-            char *next_word = malloc(next_word_len);
-            assert(next_word);
-            if(word == NULL){
-                next_word[0] = node->children[i]->prefix;
-                next_word[1] = '\0';
-            } else {
-                strcpy(next_word, word);
-                int len = strlen(next_word);
-                next_word[len] = node->children[i]->prefix;
-                next_word[len + 1] = '\0';
-            }
-            _collect_words(node->children[i], wordlist, next_word);
         }
     }
 }
