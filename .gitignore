@@ -4,6 +4,10 @@
 #bin
 swordx
 
+#test
+test
+
+
 # Prerequisites
 *.d
 

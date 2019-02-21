@@ -219,7 +219,6 @@ static void _collect_words(const _TrieNode *node, List *wordlist, char *word){
     if (!node->is_leaf){
         for (int i = 0; i < ALPHABET; i++){
             if (node->children[i] != NULL){
-                int next_word_len;
                 int next_word_len = (word != NULL) ? (strlen(word) + 2) : 2;
                 char *next_word = malloc(next_word_len);
                 assert(next_word);
