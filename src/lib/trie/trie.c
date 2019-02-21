@@ -216,7 +216,7 @@ static void _collect_words(const _TrieNode *node, List *wordlist, char *word){
         snprintf(word_info, len, "%s %d", word, node->occurrences);
         list_append(word_info, wordlist);
     }
-    if (!node->is_leaf){
+    if(!node->is_leaf){
         for (int i = 0; i < ALPHABET; i++){
             if (node->children[i] != NULL){
                 int next_word_len = (word != NULL) ? (strlen(word) + 2) : 2;
