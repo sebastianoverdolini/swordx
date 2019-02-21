@@ -138,7 +138,7 @@ static _TrieNode *_node_new(const char prefix, _TrieNode *parent){
 
 static void _node_destroy(_TrieNode *node){
     if(node){
-        for(int i = 0; i <=ALPHABET; i++){
+        for(int i = 0; i < ALPHABET; i++){
             _node_destroy(node->children[i]);
         }
         free(node);
