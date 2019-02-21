@@ -57,11 +57,7 @@ void trie_destroy(Trie *trie){
 
 int trie_insert(const char *word, Trie *trie){
     assert(trie);
-    if(strcmp(word, "") == 0){
-        errno = EINVAL;
-        return -1;
-    }
-    if(!_word_format_is_valid(word)){
+    if(strlen(word) == 0 || !_word_format_is_valid(word)){
         errno = EINVAL;
         return -1;
     }
@@ -71,11 +67,11 @@ int trie_insert(const char *word, Trie *trie){
 
 int trie_insert_with_occ(const char *word, int occurrences, Trie *trie){
     assert(trie);
-    if(strcmp(word, "") == 0){
+    if(strlen(word) == 0 || !_word_format_is_valid(word)){
         errno = EINVAL;
         return -1;
     }
-    if(!_word_format_is_valid(word)){
+    if(occurrences < 1){
         errno = EINVAL;
         return -1;
     }
@@ -94,72 +90,19 @@ void trie_remove(const char *word, Trie *trie){
 
 bool trie_contains(const char *word, const Trie *trie){
     assert(trie);
-    if(strcmp(word, "") == 0){
+    if(strlen(word) == 0 || !_word_format_is_valid(word)){
         return false;
     }
-    if(!_word_format_is_valid(word)){
-        return false;
-    }
-    if(_get_last_word_node(word, trie->root) == NULL){
-        return false;
-    } else {
-        return true;
-    }
+    return (_get_last_word_node(word, trie->root) != NULL);
 }
 
 int trie_get_word_occurrences(const char *word, const Trie *trie){
     assert(trie);
-    if(strcmp(word, "") == 0){
-        return 0;
-    }
-    if(!_word_format_is_valid(word)){
+    if(strlen(word) == 0 || !_word_format_is_valid(word)){
         return 0;
     }
     _TrieNode *node = _get_last_word_node(word, trie->root);
     return (node != NULL) ? node->occurrences : 0;
-}
-
-int trie_set_word_occurrences(const char *word, const int occurrences, Trie *trie){
-    assert(trie);
-    if(word == NULL){
-        errno = EINVAL;
-        return -1;
-    }
-    if(occurrences <= 0){
-        errno = EINVAL;
-        return -1;
-    }
-    if(strcmp(word, "") == 0){
-        errno = EINVAL;
-        return -1;
-    }
-    if(!_word_format_is_valid(word)){
-        errno = EINVAL;
-        return -1;
-    }
-    if(_get_last_word_node(word, trie->root) == NULL){
-        int res = trie_insert(word, trie);
-        if(res == -1){
-            return -1;
-        }
-    }
-    _TrieNode *node = _get_last_word_node(word, trie->root);
-    node->occurrences = occurrences;
-    return 0;
-}
-
-int trie_insert_wordlist(const List *wordlist, Trie *trie){
-    assert(wordlist);
-    assert(trie);
-    ListIterator *iterator = list_iterator_new(wordlist);
-    while(list_iterator_has_next(iterator)){
-        list_iterator_advance(iterator);
-        int res = trie_insert(list_iterator_get_element(iterator), trie);
-        if(res == -1){
-            return -1;
-        }
-    }
-    return 0;
 }
 
 List *trie_get_wordlist(const Trie *trie){
