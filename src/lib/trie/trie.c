@@ -160,7 +160,6 @@ static void _node_insert(const char *word, int occurrences, _TrieNode *node){
     if(strlen(word) == 0){
         node->occurrences += occurrences;
         node->is_word = true;
-        return;
     } else {
         char next_prefix = tolower(word[0]);
         int next_child_index = _get_children_array_pos(next_prefix);
