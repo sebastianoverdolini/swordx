@@ -32,6 +32,8 @@ void trie_destroy(Trie *trie);
  */
 int trie_insert(const char *word, Trie *trie);
 
+int trie_insert_with_occ(const char *word, int occurrences, Trie *trie);
+
 /**
  * @brief Rimuove una parola e tutte le sue 
  * occorrenze dal Trie. Se la parola non è

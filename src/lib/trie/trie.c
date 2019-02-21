@@ -17,7 +17,7 @@ typedef struct _TrieNode _TrieNode;
 static _TrieNode *_node_new(const char prefix, _TrieNode *parent);
 static void _node_destroy(_TrieNode *node);
 static bool _word_format_is_valid(const char *word);
-static void _node_insert(const char *word, _TrieNode *node);
+static void _node_insert(const char *word, int occurrences, _TrieNode *node);
 static _TrieNode *_get_last_word_node(const char *word, _TrieNode *node);
 static int _get_children_array_pos(const char prefix);
 static void _collect_words(const _TrieNode *node, List *wordlist, char *word);
@@ -65,8 +65,31 @@ int trie_insert(const char *word, Trie *trie){
         errno = EINVAL;
         return -1;
     }
-    _node_insert(word, trie->root);
+    _node_insert(word, 1, trie->root);
     return 0;
+}
+
+int trie_insert_with_occ(const char *word, int occurrences, Trie *trie){
+    assert(trie);
+    if(strcmp(word, "") == 0){
+        errno = EINVAL;
+        return -1;
+    }
+    if(!_word_format_is_valid(word)){
+        errno = EINVAL;
+        return -1;
+    }
+    _node_insert(word, occurrences, trie->root);
+    return 0;
+}
+
+void trie_remove(const char *word, Trie *trie){
+    assert(trie);
+    _TrieNode *node = _get_last_word_node(word, trie->root);
+    if(node){
+        node->occurrences = 0;
+        node->is_word = false;
+    }
 }
 
 bool trie_contains(const char *word, const Trie *trie){
@@ -160,6 +183,10 @@ static _TrieNode *_node_new(const char prefix, _TrieNode *parent){
         return NULL;
     }
     node->prefix = prefix;
+    for(int i = 0; i<ALPHABET; i++){
+        node->children[i] = NULL;
+    }
+    node->occurrences = 0;
     node->is_word = false;
     node->is_leaf = true;
     node->parent = parent;
@@ -185,10 +212,10 @@ static bool _word_format_is_valid(const char *word){
     return true;
 }
 
-static void _node_insert(const char *word, _TrieNode *node){
+static void _node_insert(const char *word, int occurrences, _TrieNode *node){
     assert(node);
     if(strlen(word) == 0){
-        node->occurrences++;
+        node->occurrences += occurrences;
         node->is_word = true;
         return;
     }
@@ -202,7 +229,7 @@ static void _node_insert(const char *word, _TrieNode *node){
             node->is_leaf = false;
         }
     }
-    _node_insert(word+1, node->children[next_child_index]);
+    _node_insert(word+1, occurrences, node->children[next_child_index]);
 }
 
 static _TrieNode *_get_last_word_node(const char *word, _TrieNode *node){
@@ -240,7 +267,10 @@ static void _collect_words(const _TrieNode *node, List *wordlist, char *word){
     assert(node);
     assert(wordlist);
     if(node->is_word){
-        list_append(word, wordlist);
+        int len = strlen(word) + 1  + sizeof(int) + 1;
+        char *word_info = malloc(len);
+        snprintf(word_info, len, "%s %d", word, node->occurrences);
+        list_append(word_info, wordlist);
     }
     if(node->is_leaf){
         return;
@@ -253,7 +283,7 @@ static void _collect_words(const _TrieNode *node, List *wordlist, char *word){
             } else {
                 next_word_len = 2;
             }
-            char *next_word = (char *)malloc(next_word_len);
+            char *next_word = malloc(next_word_len);
             assert(next_word);
             if(word == NULL){
                 next_word[0] = node->children[i]->prefix;

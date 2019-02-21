@@ -102,12 +102,7 @@ int avltree_insert(const int key, Trie *element, AVLTree *tree){
         if(!tree->root){
             return -1;
         }
-        tree->root->element = malloc(sizeof(element));
-        if(!tree->root->element){
-            return -1;
-        }
         tree->root->element = element;
-        tree->elements_count++;
         tree->elements_count++;
     } else {
         _AVLTreeNode *node = _get_node_from_key(key, tree->root);
@@ -315,7 +310,9 @@ static bool _is_leaf(const _AVLTreeNode *node){
 }
 
 static _AVLTreeNode *_get_node_from_key(int key, _AVLTreeNode *root){
-    assert(root);
+    if(root == NULL){
+        return NULL;
+    }
     if(key == root->key){
         return root;
     } else if(key < root->key){
