@@ -31,9 +31,9 @@ typedef struct _AVLTreeNode{
     int key;
     Trie *element;
     int height;
-    _AVLTreeNode *left;
-    _AVLTreeNode *right;
-    _AVLTreeNode *parent;
+    struct _AVLTreeNode *left;
+    struct _AVLTreeNode *right;
+    struct _AVLTreeNode *parent;
 } _AVLTreeNode;
 
 
