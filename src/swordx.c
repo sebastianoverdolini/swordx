@@ -73,8 +73,8 @@ int main(int argc, char *argv[]){
     save_output(OptArgs.output_path, words, occurr_words);
 
     list_destroy(inputs);
-    //trie_destroy(words);
-    //avltree_destroy(occurr_words);
+    trie_destroy(words);
+    avltree_destroy(occurr_words);
     free_global();
 }
 
@@ -207,6 +207,21 @@ void collect_files(List *inputs){
             die("Error in files collecting");
         }
     }
+}
+
+int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf){
+    if(typeflag == FTW_F){
+        if(!list_contains(fpath, OptArgs.files_to_exclude)){
+            list_append(fpath, files);
+            return FTW_CONTINUE;
+        }
+    }
+    if( (typeflag == FTW_D && recursive == true) || ftbuf->level == 0){
+        return FTW_CONTINUE;
+    } else {
+        return FTW_SKIP_SUBTREE;
+    }
+    return FTW_STOP;
 }
 
 void collect_words(Trie *words, AVLTree *occurr_words){
@@ -398,21 +413,6 @@ bool word_is_alphabetic(const char *word){
     return true;
 }
 
-int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf){
-    if(typeflag == FTW_F){
-        if(!list_contains(fpath, OptArgs.files_to_exclude)){
-            list_append(fpath, files);
-            return FTW_CONTINUE;
-        }
-    }
-    if( (typeflag == FTW_D && recursive == true) || ftbuf->level == 0){
-        return FTW_CONTINUE;
-    } else {
-        return FTW_SKIP_SUBTREE;
-    }
-    return FTW_STOP;
-}
-
 void initialize_global(){
     recursive = false;
     follow = false;
@@ -442,8 +442,8 @@ void die(char *message){
 }
 
 void free_global(){
-    //list_destroy(OptArgs.files_to_exclude);
-    //trie_destroy(OptArgs.words_to_ignore);
+    list_destroy(OptArgs.files_to_exclude);
+    trie_destroy(OptArgs.words_to_ignore);
     free(OptArgs.output_path);
     free(OptArgs.log_path);
     list_destroy(files);
