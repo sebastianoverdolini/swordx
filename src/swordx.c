@@ -279,16 +279,16 @@ int process_file(char *path, Trie *words, AVLTree *occurr_words, Trie *imported_
 }
 
 char *get_word(FILE *fp){
-    char word[100];
+    char word[200];
     int ch, i=0;
 
-    while(EOF!=(ch=fgetc(fp)) && !isalpha(ch))
+    while(EOF!=(ch=fgetc(fp)) && !isalnum(ch))
         ;
     if(ch == EOF)
         return NULL;
     do{
         word[i++] = tolower(ch);
-    }while(EOF!=(ch=fgetc(fp)) && isalpha(ch));
+    }while(EOF!=(ch=fgetc(fp)) && isalnum(ch));
 
     word[i]='\0';
     return strdup(word);
