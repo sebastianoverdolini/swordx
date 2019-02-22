@@ -438,6 +438,9 @@ bool word_is_alphabetic(const char *word){
         if(isdigit(word[i])){
             return false;
         }
+        if(!isascii(word[i])){
+            return false;
+        }
     }
     return true;
 }
