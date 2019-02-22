@@ -42,7 +42,8 @@ void collect_words(Trie *words, AVLTree *occurr_words);
 int process_file(char *path, Trie *words, AVLTree *occurr_words, Trie *imported_words);
 char *get_word(FILE *fp);
 int write_log_line(char *logfilepath, char *name, int cw, int iw, double time);
-int insert_sortbyoccurrency(char *word, Trie *words, AVLTree *occurr_words);
+int import_words(FILE *file, Trie *trie);
+int save_word(char *word, Trie *words, AVLTree *occurr_words, Trie *imported_words);
 void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
 int save_trie_on_file(char *filepath, Trie *trie);
 bool word_is_valid(const char *word);
@@ -231,14 +232,14 @@ void collect_words(Trie *words, AVLTree *occurr_words){
         assert(occurr_words);
     Trie *imported_words = NULL;
 
-    /*if(update){
+    if(update){
         if( (imported_words = trie_new()) == NULL){
             die("Init fail");
         }
         if( (import_words(fopen(OptArgs.output_path, "r"), imported_words)) < 0){
             die("Fail with word import");
         }
-    }*/
+    }
     ListIterator *files_iterator = list_iterator_new(files);
     while(list_iterator_has_next(files_iterator)){
         list_iterator_advance(files_iterator);
@@ -248,6 +249,25 @@ void collect_words(Trie *words, AVLTree *occurr_words){
         }
     }
     list_iterator_destroy(files_iterator);
+}
+
+int import_words(FILE *file, Trie *trie){
+    if(!file){
+        return -1;
+    }
+    assert(trie);
+    char *word;
+    while( (word = get_word(file)) != NULL){
+        if(word_is_valid(word)){
+            if(trie_insert(word, trie) < 0)
+                return -1;
+            else
+                if( (word = get_word(file)) == NULL)
+                    return -1;
+        }
+    }
+    fclose(file);
+    return 0;
 }
 
 int process_file(char *path, Trie *words, AVLTree *occurr_words, Trie *imported_words){
@@ -266,11 +286,7 @@ int process_file(char *path, Trie *words, AVLTree *occurr_words, Trie *imported_
         words_count++;
         if(word_is_valid(word)){
             if(!update || trie_contains(word, imported_words)){
-                if(sortbyoccurrency){
-                    if(insert_sortbyoccurrency(word, words, occurr_words) < 0)
-                        return -1;
-                }
-                if( (trie_insert(word, words) < 0) )
+                if( (save_word(word, words, occurr_words, imported_words) < 0))
                     return -1;
                 words_valid++;
             }
@@ -285,6 +301,27 @@ int process_file(char *path, Trie *words, AVLTree *occurr_words, Trie *imported_
             return -1;
         }
     }
+    return 0;
+}
+
+int save_word(char *word, Trie *words, AVLTree *occurr_words, Trie *imported_words){
+    assert(words);
+    assert(occurr_words);
+    if(update)
+        assert(imported_words);
+    if (sortbyoccurrency){
+        int old_occ = trie_get_word_occurrences(word, words);
+        if (old_occ != 0)
+            trie_remove(word, avltree_get_element_by_key(old_occ, occurr_words));
+        if (!avltree_contains_key(old_occ + 1, occurr_words))
+            if (avltree_insert(old_occ + 1, trie_new(), occurr_words) < 0)
+                return -1;
+        Trie *occ_trie = avltree_get_element_by_key(old_occ + 1, occurr_words);
+        if (trie_insert_with_occ(word, old_occ + 1, occ_trie) < 0)
+            return -1;
+    }
+    if ((trie_insert(word, words) < 0))
+        return -1;
     return 0;
 }
 
@@ -310,27 +347,6 @@ int write_log_line(char *logfilepath, char *name, int cw, int iw, double time){
         return -1;
     fprintf(logfile, "%s;%d;%d;%lf\n", name, cw, iw, time);
     fclose(logfile);
-    return 0;
-}
-
-int insert_sortbyoccurrency(char *word, Trie *words, AVLTree *occurr_words){
-    assert(words);
-    assert(occurr_words);
-    assert(word);
-    int old_occ = trie_get_word_occurrences(word, words);
-    int res = 0;
-    if (old_occ != 0)
-        trie_remove(word, avltree_get_element_by_key(old_occ, occurr_words));
-    if (!avltree_contains_key(old_occ + 1, occurr_words)){
-        res = avltree_insert(old_occ + 1, trie_new(), occurr_words);
-        if (res < 0)
-            return -1;
-    }
-    Trie *occ_trie = avltree_get_element_by_key(old_occ + 1, occurr_words);
-    res = trie_insert_with_occ(word, old_occ + 1, occ_trie);
-    if (res < 0)
-        return -1;
-    
     return 0;
 }
 
