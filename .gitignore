@@ -3,9 +3,8 @@
 
 #bin
 swordx
+bin
 
-#testdir
-test
 
 # Prerequisites
 *.d

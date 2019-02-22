@@ -100,20 +100,6 @@ int list_append(const char *value, List *list){
     return 0;
 }
 
-void list_addall(List *source, List *destination){
-    assert(source);
-    assert(destination);
-    
-    if(destination->head == NULL){
-        destination->head = source->head;
-        destination->tail = source->tail;
-    } else {
-        destination->tail->next = source->head;
-        destination->tail = source->tail;
-    }
-    destination->elements_count += source->elements_count;
-}
-
 ListIterator *list_iterator_new(const List *list){
     assert(list);
     ListIterator *iterator = malloc(sizeof(ListIterator));
