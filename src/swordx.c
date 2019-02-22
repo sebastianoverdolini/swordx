@@ -173,7 +173,7 @@ void process_command(int argc, char *argv[], List *inputs){
     }
     if(optind == argc){
         errno = EIO;
-        die("No inputs");
+        die("No input to be processed has been specified");
     }
     else{
         collect_inputs(argv+optind, inputs);
@@ -209,12 +209,6 @@ void collect_inputs(char *inputs[], List *list){
             die("Error in inputs collect"); 
         }
         globfree(&results);
-    }
-
-    if(list_get_elements_count(list) == 0){
-        print_help();
-        errno = EIO;
-        die("No input to be processed has been specified");
     }
 }
 
