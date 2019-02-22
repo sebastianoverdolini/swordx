@@ -290,15 +290,6 @@ int process_file(char *filepath, Trie *words, AVLTree *occurr_words, Trie *impor
     return 0;
 }
 
-int write_log_line(char *logfilepath, char *name, int cw, int iw, double time){
-    FILE *logfile = fopen(logfilepath, "a");
-    if (!logfile)
-        return -1;
-    fprintf(logfile, "%s;%d;%d;%lf\n", name, cw, iw, time);
-    fclose(logfile);
-    return 0;
-}
-
 int insert_sortbyoccurrency(char *word, Trie *words, AVLTree *occurr_words){
     assert(words);
     assert(occurr_words);
@@ -317,6 +308,15 @@ int insert_sortbyoccurrency(char *word, Trie *words, AVLTree *occurr_words){
     if (res < 0)
         return -1;
     
+    return 0;
+}
+
+int write_log_line(char *logfilepath, char *name, int cw, int iw, double time){
+    FILE *logfile = fopen(logfilepath, "a");
+    if (!logfile)
+        return -1;
+    fprintf(logfile, "%s;%d;%d;%lf\n", name, cw, iw, time);
+    fclose(logfile);
     return 0;
 }
 
