@@ -66,20 +66,6 @@ bool trie_contains(const char *word, const Trie *trie);
 int trie_get_word_occurrences(const char *word, const Trie *trie);
 
 /**
- * @brief Imposta le occorrenze di una parola all'interno del
- * Trie.
- * 
- * @param word La parola di cui settare le occorrenze
- * @param occurrences Il numero di occorrenze da settare
- * @param trie
- * @return 0 Success
- * @return -1 Failure 
- */
-int trie_set_word_occurrences(const char *word, const int occurrences, Trie *trie);
-
-int trie_insert_wordlist(const List *wordlist, Trie *trie);
-
-/**
  * @brief Restituisce le parole presenti nel Trie sottoforma
  * di lista di stringhe.
  * Formato: word occurrences

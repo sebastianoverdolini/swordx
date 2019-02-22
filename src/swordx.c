@@ -37,25 +37,22 @@ static List *files;
 
 void process_command(int argc, char *argv[], List *inputs);
 void collect_files(List *inputs);
-void collect_words(Trie *words, AVLTree *occurr_words);
-void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
-
-void initialize_global();
-void exit_success();
-void die(char *message);
-void free_global();
-
-int write_log_line(char *logfilepath, char *name, int cw, int iw, double time);
-int save_trie_on_file(char *filepath, Trie *trie);
-int process_file(char *filepath, Trie *words, AVLTree *occurr_words, Trie *imported_words);
-int insert_sortbyoccurrency(char *word, Trie *words, AVLTree *occurr_words);
-bool word_is_valid(const char *word);
-bool word_is_alphabetic(const char *word);
-int import_words_from_file(char *file, Trie *words);
 int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf);
-List *get_words_from_file(const char *path);
+void collect_words(Trie *words, AVLTree *occurr_words);
+int process_file(char *path, Trie *words, AVLTree *occurr_words, Trie *imported_words);
+char *get_word(FILE *fp);
+int write_log_line(char *logfilepath, char *name, int cw, int iw, double time);
+int import_words(FILE *file, Trie *trie);
+int save_word(char *word, Trie *words, AVLTree *occurr_words, Trie *imported_words);
+void save_output(char *output_path, Trie *words, AVLTree *occurr_words);
+int save_trie_on_file(char *filepath, Trie *trie);
+bool word_is_valid(const char *word);
 char *get_absolute_path(const char *path);
 int convert_to_int(const char *text);
+void initialize_global();
+void free_global();
+void exit_success();
+void die(char *message);
 void print_help();
 
 int main(int argc, char *argv[]){
@@ -133,13 +130,16 @@ void process_command(int argc, char *argv[], List *inputs){
                 }
             } break;
             case 'i': {
-                List *filewords = get_words_from_file(optarg);
-                if(!filewords){
+                FILE *file = fopen(optarg, "r");
+                if(!file)
                     die("Invalid --ignore argument");
-                }
-                int res = trie_insert_wordlist(filewords, OptArgs.words_to_ignore);
-                if(res == -1){
-                    die("Invalid --ignore argument");
+                char *word;
+                while( (word = get_word(file)) != NULL){
+                    if(word_is_valid(word)){
+                        if( (trie_insert(word, OptArgs.words_to_ignore)) < 0){
+                            die("Ignore fail arg");
+                        }
+                    }
                 }
             } break;
             case 's': sortbyoccurrency = true;
@@ -229,86 +229,115 @@ void collect_words(Trie *words, AVLTree *occurr_words){
     assert(files);
     if(sortbyoccurrency)
         assert(occurr_words);
-    int res = 0;
     Trie *imported_words = NULL;
 
     if(update){
-        imported_words = trie_new();
-        res = import_words_from_file(OptArgs.output_path, imported_words);
-        if(res < 0)
-            die("Failed to import words");
+        if( (imported_words = trie_new()) == NULL){
+            die("Init fail");
+        }
+        if( (import_words(fopen(OptArgs.output_path, "r"), imported_words)) < 0){
+            die("Fail with word import");
+        }
     }
     ListIterator *files_iterator = list_iterator_new(files);
     while(list_iterator_has_next(files_iterator)){
         list_iterator_advance(files_iterator);
-        char *filepath = list_iterator_get_element(files_iterator);
-        int res = process_file(filepath, words, occurr_words, imported_words);
-        if(res < 0){
-            die("Fail in wordslist collect");
+        char *file = list_iterator_get_element(files_iterator);
+        if( (process_file(file, words, occurr_words, imported_words)) < 0 ){
+            die("Fail with file processing");
         }
     }
     list_iterator_destroy(files_iterator);
 }
 
-int process_file(char *filepath, Trie *words, AVLTree *occurr_words, Trie *imported_words){
+int import_words(FILE *file, Trie *trie){
+    if(!file){
+        return -1;
+    }
+    assert(trie);
+    char *word;
+    while( (word = get_word(file)) != NULL){
+        if(word_is_valid(word)){
+            if(trie_insert(word, trie) < 0)
+                return -1;
+            else
+                if( (word = get_word(file)) == NULL)
+                    return -1;
+        }
+    }
+    fclose(file);
+    return 0;
+}
+
+int process_file(char *path, Trie *words, AVLTree *occurr_words, Trie *imported_words){
     assert(words);
     if(sortbyoccurrency)
         assert(occurr_words);
-    List *wordslist = get_words_from_file(filepath);
-    if(!wordslist)
-        return -1;
-    int res = 0;
-    int words_count = list_get_elements_count(wordslist);
-    int registed_words = 0;
-    int ignored_words = 0;
+    if(update)
+        assert(imported_words);
+    int words_count = 0, words_valid = 0, words_ignored = 0;
     clock_t begin = clock();
-    ListIterator *filewords_it = list_iterator_new(wordslist);
-    while(list_iterator_has_next(filewords_it)){
-        list_iterator_advance(filewords_it);
-        char *word = list_iterator_get_element(filewords_it);
+    char *word;
+    FILE *file = fopen(path, "r");
+    if(!file)
+        return -1;
+    while( (word = get_word(file)) != NULL){
+        words_count++;
         if(word_is_valid(word)){
             if(!update || trie_contains(word, imported_words)){
-                if(sortbyoccurrency){
-                    res = insert_sortbyoccurrency(word, words, occurr_words);
-                }
-                res = trie_insert(word, words);
-                registed_words++;
+                if( (save_word(word, words, occurr_words, imported_words) < 0))
+                    return -1;
+                words_valid++;
             }
         }
-        if(res < 0){
-            printf(word);
+    }
+    fclose(file);
+    clock_t end = clock();
+    double time_spent = (double) (end-begin) / CLOCKS_PER_SEC;
+    words_ignored = words_count - words_valid;
+    if(log){
+        if(write_log_line(OptArgs.log_path, path, words_valid, words_ignored,time_spent) < 0){
             return -1;
         }
-    }
-    clock_t end = clock();
-    double time_spent = (double) (end - begin) / CLOCKS_PER_SEC;
-    ignored_words = words_count - registed_words;
-
-    if(log){
-        write_log_line(OptArgs.log_path, filepath, registed_words, ignored_words, time_spent);
     }
     return 0;
 }
 
-int insert_sortbyoccurrency(char *word, Trie *words, AVLTree *occurr_words){
+int save_word(char *word, Trie *words, AVLTree *occurr_words, Trie *imported_words){
     assert(words);
     assert(occurr_words);
-    assert(word);
-    int old_occ = trie_get_word_occurrences(word, words);
-    int res = 0;
-    if (old_occ != 0)
-        trie_remove(word, avltree_get_element_by_key(old_occ, occurr_words));
-    if (!avltree_contains_key(old_occ + 1, occurr_words)){
-        res = avltree_insert(old_occ + 1, trie_new(), occurr_words);
-        if (res < 0)
+    if(update)
+        assert(imported_words);
+    if (sortbyoccurrency){
+        int old_occ = trie_get_word_occurrences(word, words);
+        if (old_occ != 0)
+            trie_remove(word, avltree_get_element_by_key(old_occ, occurr_words));
+        if (!avltree_contains_key(old_occ + 1, occurr_words))
+            if (avltree_insert(old_occ + 1, trie_new(), occurr_words) < 0)
+                return -1;
+        Trie *occ_trie = avltree_get_element_by_key(old_occ + 1, occurr_words);
+        if (trie_insert_with_occ(word, old_occ + 1, occ_trie) < 0)
             return -1;
     }
-    Trie *occ_trie = avltree_get_element_by_key(old_occ + 1, occurr_words);
-    res = trie_insert_with_occ(word, old_occ + 1, occ_trie);
-    if (res < 0)
+    if ((trie_insert(word, words) < 0))
         return -1;
-    
     return 0;
+}
+
+char *get_word(FILE *fp){
+    char word[200];
+    int ch, i=0;
+
+    while(EOF != (ch=fgetc(fp)) && isblank(ch) && isspace(ch))
+        ;
+    if(ch == EOF)
+        return NULL;
+    do{
+        word[i++] = tolower(ch);
+    }while(EOF!=(ch=fgetc(fp)) && !isblank(ch) && !isspace(ch));
+
+    word[i]='\0';
+    return strdup(word);
 }
 
 int write_log_line(char *logfilepath, char *name, int cw, int iw, double time){
@@ -360,125 +389,23 @@ int save_trie_on_file(char *filepath, Trie *trie){
     return 0;
 }
 
-int import_words_from_file(char *file, Trie *words){
-    assert(words);
-    int res = 0;
-    List* filewords = get_words_from_file(file);
-    if(!filewords){
-        return -1;
-    }
-    ListIterator *iterator = list_iterator_new(filewords);
-    while(list_iterator_has_next(iterator)){
-        list_iterator_advance(iterator);
-        char *word = list_iterator_get_element(iterator);
-        if(!list_iterator_has_next(iterator)) return -1;
-        list_iterator_advance(iterator);
-        int occurrences = convert_to_int(list_iterator_get_element(iterator));
-        if(occurrences < 0) return -1;
-        if(trie_contains(word, words)) return -1;
-        res = trie_insert(word, words);
-        if(res < 0) return -1;
-    }
-    list_iterator_destroy(iterator);
-    list_destroy(filewords);
-    return 0;
-}
-
-List *get_words_from_file(const char *path){
-    FILE *file = fopen(path, "r");
-    if(!file){
-        return NULL;
-    }
-    List *words = list_new();
-    if(!words){
-        return NULL;
-    }
-    char *buffer, *word;
-    size_t lnsize = 0;
-    int res = 0;
-    while( (res = getline(&buffer, &lnsize, file)) > 0){
-        if(res == -1){
-            return NULL;
-        }
-        word = strtok(buffer, " ,.:;-’_[]()/!£$%&?^|*€@#§èéà°çéò+ùì^'°*'\n");
-        while(word != NULL){
-            res = list_append(word, words);
-            if(res == -1){
-                return NULL;
-            }
-            word = strtok(NULL, " ,.:;-’_[]()/!£$%&?^|*€@#§èéà°çéò+ùì^'°*'\n");
-        }
-    }
-    return words;
-}
-
 bool word_is_valid(const char *word){
     if(!word){
         return false;
     }
-    if(alpha){
-        if(!word_is_alphabetic(word)){
-            return false;
-        }
-    }
     if(strlen(word) < OptArgs.minimum_word_length){
         return false;
+    }
+    for(int i = 0; i < strlen(word); i++){
+        if(!isalnum(word[i]))
+            return false;
+        if(alpha && isdigit(word[i]))
+            return false;
     }
     if(trie_contains(word, OptArgs.words_to_ignore)){
         return false;
     }
     return true;
-}
-
-bool word_is_alphabetic(const char *word){
-    if(!word){
-        return false;
-    }
-    for(int i = 0; i < strlen(word); i++){
-        if(isdigit(word[i])){
-            return false;
-        }
-        if(!isascii(word[i])){
-            return false;
-        }
-    }
-    return true;
-}
-
-void initialize_global(){
-    recursive = false;
-    follow = false;
-    alpha = false;
-    sortbyoccurrency = false;
-    update = false;
-    log = false;
-
-    OptArgs.files_to_exclude = list_new();
-    if(!OptArgs.files_to_exclude) die(NULL);
-    OptArgs.minimum_word_length = 0;
-    OptArgs.words_to_ignore = trie_new();
-    if(!OptArgs.words_to_ignore) die(NULL);
-    files = list_new();
-    if(!files) die(NULL);
-}
-
-void exit_success(){
-    free_global();
-    exit(EXIT_SUCCESS);
-}
-
-void die(char *message){
-    perror(message);
-    free_global();
-    exit(EXIT_FAILURE);
-}
-
-void free_global(){
-    list_destroy(OptArgs.files_to_exclude);
-    trie_destroy(OptArgs.words_to_ignore);
-    free(OptArgs.output_path);
-    free(OptArgs.log_path);
-    list_destroy(files);
 }
 
 char *get_absolute_path(const char *path){
@@ -503,6 +430,42 @@ int convert_to_int(const char *text){
         result = result * 10 + (text[i] - '0');
     }
     return result;
+}
+
+void initialize_global(){
+    recursive = false;
+    follow = false;
+    alpha = false;
+    sortbyoccurrency = false;
+    update = false;
+    log = false;
+
+    OptArgs.files_to_exclude = list_new();
+    if(!OptArgs.files_to_exclude) die(NULL);
+    OptArgs.minimum_word_length = 0;
+    OptArgs.words_to_ignore = trie_new();
+    if(!OptArgs.words_to_ignore) die(NULL);
+    files = list_new();
+    if(!files) die(NULL);
+}
+
+void free_global(){
+    list_destroy(OptArgs.files_to_exclude);
+    trie_destroy(OptArgs.words_to_ignore);
+    free(OptArgs.output_path);
+    free(OptArgs.log_path);
+    list_destroy(files);
+}
+
+void exit_success(){
+    free_global();
+    exit(EXIT_SUCCESS);
+}
+
+void die(char *message){
+    perror(message);
+    free_global();
+    exit(EXIT_FAILURE);
 }
 
 void print_help(){
