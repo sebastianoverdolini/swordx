@@ -73,8 +73,8 @@ int main(int argc, char *argv[]){
     save_output(OptArgs.output_path, words, occurr_words);
 
     list_destroy(inputs);
-    //trie_destroy(words);
-    //avltree_destroy(occurr_words);
+    trie_destroy(words);
+    avltree_destroy(occurr_words);
     free_global();
 }
 
@@ -314,7 +314,7 @@ void save_output(char *output_path, Trie *words, AVLTree *occurr_words){
                 die("Error in output file");
             }
         }
-        //destroy iterator
+        avltree_iterator_destroy(avliterator);
     } else {
         res = save_trie_on_file(output_path, words);
         if(res < 0){
@@ -438,8 +438,8 @@ void die(char *message){
 }
 
 void free_global(){
-    //list_destroy(OptArgs.files_to_exclude);
-    //trie_destroy(OptArgs.words_to_ignore);
+    list_destroy(OptArgs.files_to_exclude);
+    trie_destroy(OptArgs.words_to_ignore);
     free(OptArgs.output_path);
     free(OptArgs.log_path);
     list_destroy(files);
