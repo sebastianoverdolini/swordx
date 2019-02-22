@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <glob.h>
 #include <ctype.h>
 #include <ftw.h>
 #include <string.h>
@@ -36,6 +37,7 @@ static struct OptArgs {
 static List *files;
 
 void process_command(int argc, char *argv[], List *inputs);
+void collect_inputs(char *inputs[], List *list);
 void collect_files(List *inputs);
 int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf);
 void collect_words(Trie *words, AVLTree *occurr_words);
@@ -170,20 +172,39 @@ void process_command(int argc, char *argv[], List *inputs){
         }
     }
 
+    collect_inputs(argv+optind, inputs);
+
     if(OptArgs.output_path == NULL){
         OptArgs.output_path = malloc(strlen(DEFAULT_OUTPUT_NAME) +1);
         strcpy(OptArgs.output_path, DEFAULT_OUTPUT_NAME);
     }
+}
 
-    for(int i = optind; i<argc; i++){
-        char *abspath = get_absolute_path(argv[i]);
-        if(!abspath){
-            die("Invalid input");
+void collect_inputs(char *inputs[], List *list){
+    assert(inputs);
+    glob_t results;
+    int ret;
+    for(int i = 0; inputs[i] != NULL; i++){
+        ret = glob(inputs[i], 0, NULL, &results);
+        if(ret != 0){
+            errno = EIO;
+            if(ret == GLOB_ABORTED){
+                die("Regex Error. Filesystem problem");
+            }      
+            if(ret == GLOB_NOMATCH){
+                die("Regex Error. No match of pattern");
+            }
+            if(ret == GLOB_NOSPACE){
+                die("Regex Error. No dynamic memory");
+            }
+            die("Regex Error. Unknow problem");
         }
-        list_append(abspath, inputs);
+        if(list_append(get_absolute_path(results.gl_pathv[i]), list) < 0)
+            die("Error in inputs collect"); 
     }
+    globfree(&results);
 
-    if(list_get_elements_count(inputs) == 0){
+    if(list_get_elements_count(list) == 0){
         print_help();
         errno = EIO;
         die("No input to be processed has been specified");
@@ -250,6 +271,7 @@ void collect_words(Trie *words, AVLTree *occurr_words){
         }
     }
     list_iterator_destroy(files_iterator);
+    trie_destroy(imported_words);
 }
 
 int import_words(FILE *file, Trie *trie){
@@ -343,7 +365,14 @@ char *get_word(FILE *fp){
 }
 
 int write_log_line(char *logfilepath, char *name, int cw, int iw, double time){
-    FILE *logfile = fopen(logfilepath, "a");
+    static char *log_filename;
+    FILE *logfile;
+    if(!log_filename){
+        log_filename  = malloc(strlen(logfilepath) + 5);
+        snprintf(log_filename,50,"%s.csv",logfilepath);
+        logfile = fopen(log_filename, "w");
+    }
+    logfile = fopen(log_filename, "a");
     if (!logfile)
         return -1;
     fprintf(logfile, "%s;%d;%d;%lf\n", name, cw, iw, time);
