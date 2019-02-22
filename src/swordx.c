@@ -246,8 +246,8 @@ void collect_words(Trie *words, AVLTree *occurr_words){
         if(res < 0){
             die("Fail in wordslist collect");
         }
-            
     }
+    list_iterator_destroy(files_iterator);
 }
 
 int process_file(char *filepath, Trie *words, AVLTree *occurr_words, Trie *imported_words){
@@ -333,7 +333,7 @@ void save_output(char *output_path, Trie *words, AVLTree *occurr_words){
                 die("Error in output file");
             }
         }
-        //destroy iterator
+        avltree_iterator_destroy(avliterator);
     } else {
         res = save_trie_on_file(output_path, words);
         if(res < 0){
@@ -356,6 +356,7 @@ int save_trie_on_file(char *filepath, Trie *trie){
         res = fprintf(file, "%s\n", list_iterator_get_element(wl_iterator));
         if(res < 0) return -1;
     }
+    list_iterator_destroy(wl_iterator);
     return 0;
 }
 
@@ -381,6 +382,34 @@ int import_words_from_file(char *file, Trie *words){
     list_iterator_destroy(iterator);
     list_destroy(filewords);
     return 0;
+}
+
+List *get_words_from_file(const char *path){
+    FILE *file = fopen(path, "r");
+    if(!file){
+        return NULL;
+    }
+    List *words = list_new();
+    if(!words){
+        return NULL;
+    }
+    char *buffer, *word;
+    size_t lnsize = 0;
+    int res = 0;
+    while( (res = getline(&buffer, &lnsize, file)) > 0){
+        if(res == -1){
+            return NULL;
+        }
+        word = strtok(buffer, " ,.:;-’_[]()/!£$%&?^|*€@#§èéà°çéò+ùì^'°*'\n");
+        while(word != NULL){
+            res = list_append(word, words);
+            if(res == -1){
+                return NULL;
+            }
+            word = strtok(NULL, " ,.:;-’_[]()/!£$%&?^|*€@#§èéà°çéò+ùì^'°*'\n");
+        }
+    }
+    return words;
 }
 
 bool word_is_valid(const char *word){
@@ -471,34 +500,6 @@ int convert_to_int(const char *text){
         result = result * 10 + (text[i] - '0');
     }
     return result;
-}
-
-List *get_words_from_file(const char *path){
-    FILE *file = fopen(path, "r");
-    if(!file){
-        return NULL;
-    }
-    List *words = list_new();
-    if(!words){
-        return NULL;
-    }
-    char *buffer, *word;
-    size_t lnsize = 0;
-    int res = 0;
-    while( (res = getline(&buffer, &lnsize, file)) > 0){
-        if(res == -1){
-            return NULL;
-        }
-        word = strtok(buffer, " ,.:;-’_[]()/!£$%&?^|*€@#§°*'\n");
-        while(word != NULL){
-            res = list_append(word, words);
-            if(res == -1){
-                return NULL;
-            }
-            word = strtok(NULL, " ,.:;-’_[]()/!£$%&?^|*€@#§°*'\n");
-        }
-    }
-    return words;
 }
 
 void print_help(){
