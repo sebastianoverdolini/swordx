@@ -129,7 +129,17 @@ void process_command(int argc, char *argv[], List *inputs){
                 }
             } break;
             case 'i': {
-                //TODO
+                FILE *file = fopen(optarg, "r");
+                if(!file)
+                    die("Invalid --ignore argument");
+                char *word;
+                while( (word = get_word(file)) != NULL){
+                    if(word_is_valid(word)){
+                        if( (trie_insert(word, OptArgs.words_to_ignore)) < 0){
+                            die("Ignore fail arg");
+                        }
+                    }
+                }
             } break;
             case 's': sortbyoccurrency = true;
                 break;
