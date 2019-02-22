@@ -199,8 +199,11 @@ void collect_inputs(char *inputs[], List *list){
             }
             die("Regex Error. Unknow problem");
         }
-        if(list_append(get_absolute_path(results.gl_pathv[i]), list) < 0)
+        for(int j = 0; j < results.gl_pathc; j++){
+            if(list_append(get_absolute_path(results.gl_pathv[j]), list) < 0)
             die("Error in inputs collect"); 
+        }
+        
     }
     globfree(&results);
 
