@@ -145,7 +145,7 @@ void process_command(int argc, char *argv[], List *inputs){
             case 's': sortbyoccurrency = true;
                 break;
             case 'l': {
-                 log = true;
+                log = true;
                 OptArgs.log_path = malloc(strlen(optarg) +1);
                 if(!OptArgs.log_path){
                     die("Error with --log argument");
@@ -202,18 +202,20 @@ void collect_files(List *inputs){
     while(list_iterator_has_next(iterator)){
         list_iterator_advance(iterator);
         char *path = list_iterator_get_element(iterator);
-        int result = nftw(path, manage_entry, 20, flags);
-        if(result == -1){
+        if( (nftw(path, manage_entry, 20, flags)) == -1){
             die("Error in files collecting");
         }
     }
+    list_iterator_destroy(iterator);
 }
 
 int manage_entry(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftbuf){
     if(typeflag == FTW_F){
         if(!list_contains(fpath, OptArgs.files_to_exclude)){
-            list_append(fpath, files);
-            return FTW_CONTINUE;
+            if( list_append(fpath, files) == 0)
+                return FTW_CONTINUE;
+            else
+                return FTW_STOP;
         }
     }
     if( (typeflag == FTW_D && recursive == true) || ftbuf->level == 0){
@@ -383,7 +385,8 @@ int save_trie_on_file(char *filepath, Trie *trie){
     while(list_iterator_has_next(wl_iterator)){
         list_iterator_advance(wl_iterator);
         res = fprintf(file, "%s\n", list_iterator_get_element(wl_iterator));
-        if(res < 0) return -1;
+        if(res < 0)
+            return -1;
     }
     list_iterator_destroy(wl_iterator);
     return 0;
