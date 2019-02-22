@@ -405,14 +405,11 @@ void save_output(char *output_path, Trie *words, AVLTree *occurr_words){
 int save_trie_on_file(char *filepath, Trie *trie){
     static bool to_delete_flag = true;
     FILE *file;
-    if(to_delete_flag == true){
+    if(to_delete_flag == true || !sortbyoccurrency){
         file = fopen(filepath, "w");
         to_delete_flag = false;
     } else {
-        if(sortbyoccurrency)
-            file = fopen(filepath, "a");
-        else
-            file = fopen(filepath, "w");
+        file = fopen(filepath, "a");
     }
     if(!file)
         return -1;
