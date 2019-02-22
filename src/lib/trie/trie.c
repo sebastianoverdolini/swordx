@@ -105,6 +105,20 @@ int trie_get_word_occurrences(const char *word, const Trie *trie){
     return (node != NULL) ? node->occurrences : 0;
 }
 
+int trie_insert_wordlist(const List *wordlist, Trie *trie){
+    assert(wordlist);
+    assert(trie);
+    ListIterator *iterator = list_iterator_new(wordlist);
+    while(list_iterator_has_next(iterator)){
+        list_iterator_advance(iterator);
+        int res = trie_insert(list_iterator_get_element(iterator), trie);
+        if(res == -1){
+            return -1;
+        }
+    }
+    return 0;
+}
+
 List *trie_get_wordlist(const Trie *trie){
     assert(trie);
     List *wordlist = list_new();

@@ -228,8 +228,10 @@ void collect_words(Trie *words, AVLTree *occurr_words){
         list_iterator_advance(files_iterator);
         char *filepath = list_iterator_get_element(files_iterator);
         int res = process_file(filepath, words, occurr_words, imported_words);
-        if(res < 0)
+        if(res < 0){
             die("Fail in wordslist collect");
+        }
+            
     }
 }
 
@@ -258,8 +260,10 @@ int process_file(char *filepath, Trie *words, AVLTree *occurr_words, Trie *impor
                 registed_words++;
             }
         }
-        if(res < 0)
+        if(res < 0){
+            printf(word);
             return -1;
+        }
     }
     clock_t end = clock();
     double time_spent = (double) (end - begin) / CLOCKS_PER_SEC;
@@ -485,13 +489,13 @@ List *get_words_from_file(const char *path){
         if(res == -1){
             return NULL;
         }
-        word = strtok(buffer, " ,.:;-_[]()/!£$%&?^|*€@#§°*'\n");
+        word = strtok(buffer, " ,.:;-’_[]()/!£$%&?^|*€@#§°*'\n");
         while(word != NULL){
             res = list_append(word, words);
             if(res == -1){
                 return NULL;
             }
-            word = strtok(NULL, " ,.:;-_[]()/!£$%&?^|*€@#§°*'\n");
+            word = strtok(NULL, " ,.:;-’_[]()/!£$%&?^|*€@#§°*'\n");
         }
     }
     return words;

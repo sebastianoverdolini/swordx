@@ -77,6 +77,8 @@ int trie_get_word_occurrences(const char *word, const Trie *trie);
  */
 int trie_set_word_occurrences(const char *word, const int occurrences, Trie *trie);
 
+int trie_insert_wordlist(const List *wordlist, Trie *trie);
+
 /**
  * @brief Restituisce le parole presenti nel Trie sottoforma
  * di lista di stringhe.
