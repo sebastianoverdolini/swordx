@@ -282,13 +282,13 @@ char *get_word(FILE *fp){
     char word[200];
     int ch, i=0;
 
-    while(EOF!=(ch=fgetc(fp)) && !isalnum(ch))
+    while(EOF != (ch=fgetc(fp)) && isblank(ch) && isspace(ch))
         ;
     if(ch == EOF)
         return NULL;
     do{
         word[i++] = tolower(ch);
-    }while(EOF!=(ch=fgetc(fp)) && isalnum(ch));
+    }while(EOF!=(ch=fgetc(fp)) && !isblank(ch) && !isspace(ch));
 
     word[i]='\0';
     return strdup(word);
