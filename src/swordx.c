@@ -403,12 +403,20 @@ void save_output(char *output_path, Trie *words, AVLTree *occurr_words){
 }
 
 int save_trie_on_file(char *filepath, Trie *trie){
-    char *write_mode = (sortbyoccurrency) ? "a" : "w";
-    int res = 0;
-    FILE *file = fopen(filepath, write_mode);
-    if(!file){
-        return -1;
+    static bool to_delete_flag = true;
+    FILE *file;
+    if(to_delete_flag == true){
+        file = fopen(filepath, "w");
+        to_delete_flag = false;
+    } else {
+        if(sortbyoccurrency)
+            file = fopen(filepath, "a");
+        else
+            file = fopen(filepath, "w");
     }
+    if(!file)
+        return -1;
+    int res = 0;
     List *wordlist = trie_get_wordlist(trie);
     ListIterator *wl_iterator = list_iterator_new(wordlist);
     while(list_iterator_has_next(wl_iterator)){
@@ -418,6 +426,7 @@ int save_trie_on_file(char *filepath, Trie *trie){
             return -1;
     }
     list_iterator_destroy(wl_iterator);
+    list_destroy(wordlist);
     return 0;
 }
 
