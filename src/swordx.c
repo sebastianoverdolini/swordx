@@ -171,8 +171,13 @@ void process_command(int argc, char *argv[], List *inputs){
                 break;
         }
     }
-
-    collect_inputs(argv+optind, inputs);
+    if(optind == argc){
+        errno = EIO;
+        die("No inputs");
+    }
+    else{
+        collect_inputs(argv+optind, inputs);
+    }
 
     if(OptArgs.output_path == NULL){
         OptArgs.output_path = malloc(strlen(DEFAULT_OUTPUT_NAME) +1);
@@ -203,9 +208,8 @@ void collect_inputs(char *inputs[], List *list){
             if(list_append(get_absolute_path(results.gl_pathv[j]), list) < 0)
             die("Error in inputs collect"); 
         }
-        
+        globfree(&results);
     }
-    globfree(&results);
 
     if(list_get_elements_count(list) == 0){
         print_help();
